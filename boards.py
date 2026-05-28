@@ -6,42 +6,7 @@ SAVE_FOLDER = Path("./out")
 ChoiceOptions = Literal["Simple"]
 ColourData = tuple[int, int, int, int]
 CoordData = tuple[int, int]
-
-
-class Cell:
-    def __init__(self) -> None:
-        self.value = 0
-        self.occupied_by = 0
-        self.attacked_by: set[int] = set()
-
-    def set_value(self, n: int) -> None:
-        self.value = n
-
-    def get_value(self) -> int:
-        return self.value
-
-    def set_piece(self, piece: int) -> None:
-        self.occupied_by = piece
-
-    def get_piece(self) -> int:
-        return self.occupied_by
-
-    def attack(self, piece: int) -> None:
-        self.attacked_by.add(piece)
-
-    def is_safe_to(self, piece: int) -> bool:
-        if self.occupied_by:
-            return False
-        if not self.attacked_by:
-            return True
-        if len(self.attacked_by) > 1:
-            return False
-        if piece in self.attacked_by:
-            return True
-        return False
-
-
-BoardData = list[list[Cell]]
+BoardData = list[list[int]]
 
 
 class Board:
@@ -51,43 +16,32 @@ class Board:
         self.height = height
         self.width = width
         self.colours_amount = colours_amount
-        self.board = [[Cell() for _ in range(width)] for _ in range(height)]
+        self.board = [[0 for _ in range(width)] for _ in range(height)]
+        self.ordered_cells: list[list[CoordData]] = [[] for _ in range(colours_amount)]
         self.choice = choice  # used later to render
         self.build_place_board()
 
     def fill_simple_board(self) -> None:
-        n = 0
         for y in range(self.height):
             for x in range(self.width):
-                self.board[y][x].set_value(n)
-                n += 1
+                coord = (y, x)
+                for cell_orders in self.ordered_cells:
+                    cell_orders.append(coord)
 
     def build_place_board(self) -> None:
         if self.choice == "Simple":
             return self.fill_simple_board()
         raise NotImplementedError("choose a valid option")
 
-    def get_cell(self, coord: CoordData) -> Cell:
-        y, x = coord
-        return self.board[y][x]
+    def remove_coord(self, coord: CoordData, turn: int) -> None:
+        for colour_index in range(self.colours_amount):
+            if colour_index == turn:
+                continue
+            cell_order = self.ordered_cells[colour_index]
+            if coord in cell_order:
+                cell_order.remove(coord)
 
-    def find_safe_lowest_place(self, turn: int) -> CoordData:
-        piece = turn + 1
-        lowest_coord = (-1, -1)
-        lowest_value: float | int = float("inf")
-        for y in range(self.height):
-            for x in range(self.width):
-                coord = (y, x)
-                cell = self.get_cell(coord)
-                if not cell.is_safe_to(piece):
-                    continue
-                if cell.value > lowest_value:
-                    continue
-                lowest_coord = coord
-                lowest_value = cell.value
-        return lowest_coord
-
-    def place_attack(self, coord: CoordData, piece: int) -> None:
+    def place_attack(self, coord: CoordData, turn: int) -> None:
         y, x = coord
         if y < 0:
             return
@@ -97,31 +51,33 @@ class Board:
             return
         if x >= self.width:
             return
-        self.get_cell((y, x)).attack(piece)
+        self.remove_coord(coord, turn)
 
-    def place_attacks(self, coord: CoordData, piece: int) -> None:
+    def place_attacks(self, coord: CoordData, turn: int) -> None:
         y, x = coord
-        self.place_attack((y - 2, x - 1), piece)
-        self.place_attack((y - 2, x + 1), piece)
-        self.place_attack((y - 1, x - 2), piece)
-        self.place_attack((y - 1, x + 2), piece)
-        self.place_attack((y + 1, x - 2), piece)
-        self.place_attack((y + 1, x + 2), piece)
-        self.place_attack((y + 2, x - 1), piece)
-        self.place_attack((y + 2, x + 1), piece)
+        self.place_attack((y - 2, x - 1), turn)
+        self.place_attack((y - 2, x + 1), turn)
+        self.place_attack((y - 1, x - 2), turn)
+        self.place_attack((y - 1, x + 2), turn)
+        self.place_attack((y + 1, x - 2), turn)
+        self.place_attack((y + 1, x + 2), turn)
+        self.place_attack((y + 2, x - 1), turn)
+        self.place_attack((y + 2, x + 1), turn)
 
     def place_piece(self, coord: CoordData, turn: int) -> None:
         piece = turn + 1
-        cell = self.get_cell(coord)
-        cell.set_piece(piece)
-        self.place_attacks(coord, piece)
+        y, x = coord
+        self.board[y][x] = piece
+        self.remove_coord(coord, turn)
+        self.place_attacks(coord, turn)
 
     def solve(self, colours: list[ColourData], background_color: ColourData) -> None:
         turn = 0
         while True:
-            coord = self.find_safe_lowest_place(turn)
-            if coord == (-1, -1):
+            cell_order = self.ordered_cells[turn]
+            if len(cell_order) == 0:
                 break
+            coord = cell_order.pop(0)
             self.place_piece(coord, turn)
             turn += 1
             if turn >= len(colours):
@@ -134,8 +90,7 @@ class Board:
         img = Image.new("RGBA", (self.width, self.height), background_color)
         for y in range(self.height):
             for x in range(self.width):
-                cell = self.get_cell((y, x))
-                piece = cell.get_piece()
+                piece = self.board[y][x]
                 if piece == 0:
                     continue
                 img.putpixel((x, y), colours[piece - 1])
