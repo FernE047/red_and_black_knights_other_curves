@@ -1,8 +1,8 @@
 from boards import Board
 
 
-WIDTH = 501
-HEIGHT = 501
+WIDTH = 51
+HEIGHT = 51
 BACKGROUND_COLOR = (255, 255, 255, 255)
 TEAM_COLORS = [(0, 0, 0, 255), (255, 0, 0, 255)]
 COLOURS_AMOUNT = len(TEAM_COLORS)

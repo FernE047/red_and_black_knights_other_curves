@@ -10,6 +10,17 @@ BoardData = list[list[int]]
 
 
 class Board:
+    KNIGHT_MOVES = (
+        (-2, -1),
+        (-2, 1),
+        (-1, -2),
+        (-1, 2),
+        (1, -2),
+        (1, 2),
+        (2, -1),
+        (2, 1),
+    )
+
     def __init__(
         self, height: int, width: int, colours_amount: int, choice: ChoiceOptions | None
     ) -> None:
@@ -41,28 +52,17 @@ class Board:
             if coord in cell_order:
                 cell_order.remove(coord)
 
-    def place_attack(self, coord: CoordData, turn: int) -> None:
-        y, x = coord
-        if y < 0:
-            return
-        if y >= self.height:
-            return
-        if x < 0:
-            return
-        if x >= self.width:
-            return
-        self.remove_coord(coord, turn)
+    def is_inside(self, y: int, x: int) -> bool:
+        return 0 <= y < self.height and 0 <= x < self.width
 
     def place_attacks(self, coord: CoordData, turn: int) -> None:
         y, x = coord
-        self.place_attack((y - 2, x - 1), turn)
-        self.place_attack((y - 2, x + 1), turn)
-        self.place_attack((y - 1, x - 2), turn)
-        self.place_attack((y - 1, x + 2), turn)
-        self.place_attack((y + 1, x - 2), turn)
-        self.place_attack((y + 1, x + 2), turn)
-        self.place_attack((y + 2, x - 1), turn)
-        self.place_attack((y + 2, x + 1), turn)
+        for dy, dx in self.KNIGHT_MOVES:
+            ay = y + dy
+            ax = x + dx
+            if not self.is_inside(ay, ax):
+                continue
+            self.remove_coord((ay, ax), turn)
 
     def place_piece(self, coord: CoordData, turn: int) -> None:
         piece = turn + 1
