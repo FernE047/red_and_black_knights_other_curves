@@ -14,8 +14,14 @@ TEAM_COLORS = [
     (255, 0, 255, 255),
     (255, 128, 0, 255),
 ]
-COLOURS_AMOUNT = 2
 
-turn = 0
-board = Board(HEIGHT, WIDTH, COLOURS_AMOUNT, ChoiceOptions.SPIRAL_DIAGONAL_2)
-board.solve(TEAM_COLORS, BACKGROUND_COLOR)
+
+def main() -> None:
+    board = Board(HEIGHT, WIDTH, 2, ChoiceOptions.SPIRAL_DIAGONAL_2)
+    for a in range(2, 9):
+        board.restart(a)
+        board.solve(TEAM_COLORS, BACKGROUND_COLOR)
+
+
+if __name__ == "__main__":
+    main()

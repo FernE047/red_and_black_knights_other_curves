@@ -82,6 +82,16 @@ class Board:
         self.choice = choice
         self.build_place_board()
 
+    def clean(self) -> None:
+        for row in self.board:
+            for i in range(len(row)):
+                row[i] = 0
+
+    def restart(self, colours_amount: int) -> None:
+        self.clean()
+        self.colours_amount = colours_amount
+        self.cursors = [0 for _ in range(colours_amount)]
+
     def fill_simple_board(self) -> None:
         for y in range(self.height):
             for x in range(self.width):
@@ -155,7 +165,11 @@ class Board:
             is_finished = True
             for direction in DIAGONAL_DIRECTIONS:
                 for step in range(movement):
-                    if left_first and direction == Direction.UPLEFT and step == movement - 1:
+                    if (
+                        left_first
+                        and direction == Direction.UPLEFT
+                        and step == movement - 1
+                    ):
                         break
                     coord, is_finished = self.try_add(coord, direction, is_finished)
             movement += 1
