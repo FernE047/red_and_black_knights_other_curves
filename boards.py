@@ -1,13 +1,29 @@
+from enum import Enum
 from pathlib import Path
 from typing import Literal
 
 SAVE_FOLDER = Path("./out")
 
-ChoiceOptions = Literal["Simple"]
+ChoiceOptions = Literal["Simple", "Spiral"]
 ColourData = tuple[int, int, int, int]
 CoordData = tuple[int, int]
-BoardData = list[list[int]]
 
+class Direction(Enum):
+    UP = 0,
+    RIGHT = 1,
+    DOWN = 2,
+    LEFT = 3
+
+def apply_direction(coord: CoordData, direction: Direction) -> CoordData:
+    y, x = coord
+    if direction == Direction.UP:
+        return (y - 1, x)
+    if direction == Direction.RIGHT:
+        return (y, x + 1)
+    if direction == Direction.DOWN:
+        return (y + 1, x)
+    if direction == Direction.LEFT:
+        return (y, x - 1)
 
 class Board:
     KNIGHT_MOVES = (
@@ -40,9 +56,28 @@ class Board:
                 coord = (y, x)
                 self.ordered_cells.append(coord)
 
+    def fill_spiral_board(self) -> None:
+        is_finished = False
+        coord = (self.height//2, self.width//2)
+        self.ordered_cells.append(coord)
+        movement = 1
+        while not is_finished:
+            is_finished = True
+            for direction in Direction:
+                for _ in range(movement):
+                    coord = apply_direction(coord, direction)
+                    if self.is_inside(coord[0],coord[1]):
+                        is_finished = False
+                        self.ordered_cells.append(coord)
+                if direction in [Direction.RIGHT, Direction.LEFT]:
+                    movement += 1
+        self.cell_amount = len(self.ordered_cells)
+
     def build_place_board(self) -> None:
         if self.choice == "Simple":
             return self.fill_simple_board()
+        if self.choice == "Spiral":
+            return self.fill_spiral_board()
         raise NotImplementedError("choose a valid option")
 
     def is_inside(self, y: int, x: int) -> bool:

@@ -8,5 +8,5 @@ TEAM_COLORS = [(0, 0, 0, 255), (255, 0, 0, 255)]
 COLOURS_AMOUNT = len(TEAM_COLORS)
 
 turn = 0
-board = Board(HEIGHT, WIDTH, COLOURS_AMOUNT, "Simple")
+board = Board(HEIGHT, WIDTH, COLOURS_AMOUNT, "Spiral")
 board.solve(TEAM_COLORS, BACKGROUND_COLOR)
