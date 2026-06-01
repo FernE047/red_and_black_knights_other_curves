@@ -171,7 +171,7 @@ class Board:
                 continue
             turn += 1
             self.board[y][x] = turn
-            if turn >= len(colours):
+            if turn >= self.colours_amount:
                 turn = 0
         self.render(colours, background_color)
 
