@@ -4,26 +4,44 @@ from typing import Literal
 
 SAVE_FOLDER = Path("./out")
 
-ChoiceOptions = Literal["Simple", "Spiral"]
+ChoiceOptions = Literal["Simple", "Spiral", "Spiral_2", "Spiral_3", "Snake"]
 ColourData = tuple[int, int, int, int]
 CoordData = tuple[int, int]
 
+
 class Direction(Enum):
-    UP = 0,
-    RIGHT = 1,
-    DOWN = 2,
-    LEFT = 3
+    UP = 0
+    UPRIGHT = 1
+    RIGHT = 2
+    DOWNRIGHT = 3
+    DOWN = 4
+    DOWNLEFT = 5
+    LEFT = 6
+    UPLEFT = 7
+
+
+ORTHOGONAL_DIRECTIONS = (Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT)
+
 
 def apply_direction(coord: CoordData, direction: Direction) -> CoordData:
     y, x = coord
     if direction == Direction.UP:
         return (y - 1, x)
+    if direction == Direction.UPRIGHT:
+        return (y - 1, x + 1)
     if direction == Direction.RIGHT:
         return (y, x + 1)
+    if direction == Direction.DOWNRIGHT:
+        return (y + 1, x + 1)
     if direction == Direction.DOWN:
         return (y + 1, x)
+    if direction == Direction.DOWNLEFT:
+        return (y + 1, x - 1)
     if direction == Direction.LEFT:
         return (y, x - 1)
+    if direction == Direction.UPLEFT:
+        return (y - 1, x - 1)
+
 
 class Board:
     KNIGHT_MOVES = (
@@ -56,20 +74,56 @@ class Board:
                 coord = (y, x)
                 self.ordered_cells.append(coord)
 
-    def fill_spiral_board(self) -> None:
+    def fill_spiral_board(self, initial_coord: CoordData) -> None:
         is_finished = False
-        coord = (self.height//2, self.width//2)
+        coord = initial_coord
         self.ordered_cells.append(coord)
         movement = 1
         while not is_finished:
             is_finished = True
-            for direction in Direction:
+            for direction in ORTHOGONAL_DIRECTIONS:
                 for _ in range(movement):
                     coord = apply_direction(coord, direction)
-                    if self.is_inside(coord[0],coord[1]):
+                    if self.is_inside(coord[0], coord[1]):
                         is_finished = False
                         self.ordered_cells.append(coord)
                 if direction in [Direction.RIGHT, Direction.LEFT]:
+                    movement += 1
+        self.cell_amount = len(self.ordered_cells)
+
+    def fill_snake_board(self) -> None:
+        is_finished = False
+        coord = (0, 0)
+        self.ordered_cells.append(coord)
+        movement = 1
+        coord = apply_direction(coord, Direction.DOWN)
+        if not self.is_inside(coord[0], coord[1]):
+            self.cell_amount = len(self.ordered_cells)
+            return
+        while not is_finished:
+            is_finished = True
+            for direction in (
+                Direction.RIGHT,
+                Direction.UP,
+                Direction.DOWN,
+                Direction.LEFT,
+            ):
+                for _ in range(movement):
+                    coord = apply_direction(coord, direction)
+                    if self.is_inside(coord[0], coord[1]):
+                        is_finished = False
+                        self.ordered_cells.append(coord)
+                if direction == Direction.UP:
+                    coord = apply_direction(coord, Direction.RIGHT)
+                    if self.is_inside(coord[0], coord[1]):
+                        is_finished = False
+                        self.ordered_cells.append(coord)
+                    movement += 1
+                if direction == Direction.LEFT:
+                    coord = apply_direction(coord, Direction.DOWN)
+                    if self.is_inside(coord[0], coord[1]):
+                        is_finished = False
+                        self.ordered_cells.append(coord)
                     movement += 1
         self.cell_amount = len(self.ordered_cells)
 
@@ -77,7 +131,13 @@ class Board:
         if self.choice == "Simple":
             return self.fill_simple_board()
         if self.choice == "Spiral":
-            return self.fill_spiral_board()
+            return self.fill_spiral_board((self.height // 2, self.width // 2))
+        if self.choice == "Spiral_2":
+            return self.fill_spiral_board((0, 0))
+        if self.choice == "Spiral_3":
+            return self.fill_spiral_board((0, self.width // 2))
+        if self.choice == "Snake":
+            return self.fill_snake_board()
         raise NotImplementedError("choose a valid option")
 
     def is_inside(self, y: int, x: int) -> bool:
@@ -92,7 +152,7 @@ class Board:
             if not self.is_inside(ay, ax):
                 continue
             cell = self.board[ay][ax]
-            if cell and cell!= piece:
+            if cell and cell != piece:
                 return False
         return True
 
@@ -101,7 +161,7 @@ class Board:
         while True:
             cursor = self.cursors[turn]
             coord = self.ordered_cells[cursor]
-            y,x = coord
+            y, x = coord
             cell = self.board[y][x]
             if cell != 0 or not self.is_coord_safe(coord, turn):
                 cursor += 1
