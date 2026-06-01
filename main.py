@@ -1,4 +1,4 @@
-from boards import Board
+from boards import Board, ChoiceOptions
 
 
 WIDTH = 1000
@@ -17,5 +17,5 @@ TEAM_COLORS = [
 COLOURS_AMOUNT = 2
 
 turn = 0
-board = Board(HEIGHT, WIDTH, COLOURS_AMOUNT, "Spiral")
+board = Board(HEIGHT, WIDTH, COLOURS_AMOUNT, ChoiceOptions.SPIRAL)
 board.solve(TEAM_COLORS, BACKGROUND_COLOR)

@@ -1,10 +1,8 @@
 from enum import Enum
 from pathlib import Path
-from typing import Literal
 
 SAVE_FOLDER = Path("./out")
 
-ChoiceOptions = Literal["Simple", "Spiral", "Spiral_2", "Spiral_3", "Snake"]
 ColourData = tuple[int, int, int, int]
 CoordData = tuple[int, int]
 
@@ -19,6 +17,12 @@ class Direction(Enum):
     LEFT = 6
     UPLEFT = 7
 
+class ChoiceOptions(Enum):
+    SIMPLE = 0
+    SPIRAL = 1
+    SPIRAL_2 = 2
+    SPIRAL_3 = 3
+    SNAKE = 4
 
 ORTHOGONAL_DIRECTIONS = (Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT)
 
@@ -56,7 +60,7 @@ class Board:
     )
 
     def __init__(
-        self, height: int, width: int, colours_amount: int, choice: ChoiceOptions | None
+        self, height: int, width: int, colours_amount: int, choice: ChoiceOptions
     ) -> None:
         self.height = height
         self.width = width
@@ -128,15 +132,15 @@ class Board:
         self.cell_amount = len(self.ordered_cells)
 
     def build_place_board(self) -> None:
-        if self.choice == "Simple":
+        if self.choice == ChoiceOptions.SIMPLE:
             return self.fill_simple_board()
-        if self.choice == "Spiral":
+        if self.choice == ChoiceOptions.SPIRAL:
             return self.fill_spiral_board((self.height // 2, self.width // 2))
-        if self.choice == "Spiral_2":
+        if self.choice == ChoiceOptions.SPIRAL_2:
             return self.fill_spiral_board((0, 0))
-        if self.choice == "Spiral_3":
+        if self.choice == ChoiceOptions.SPIRAL_3:
             return self.fill_spiral_board((0, self.width // 2))
-        if self.choice == "Snake":
+        if self.choice == ChoiceOptions.SNAKE:
             return self.fill_snake_board()
         raise NotImplementedError("choose a valid option")
 
