@@ -17,7 +17,7 @@ TEAM_COLORS = [
 
 
 def main() -> None:
-    board = Board(HEIGHT, WIDTH, 2, ChoiceOptions.SPIRAL_DIAGONAL_2)
+    board = Board(HEIGHT, WIDTH, 2, ChoiceOptions.SPIRAL_DIAGONAL)
     for a in range(2, 9):
         board.restart(a)
         board.solve(TEAM_COLORS, BACKGROUND_COLOR)
