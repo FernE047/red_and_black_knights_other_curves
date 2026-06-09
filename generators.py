@@ -154,19 +154,19 @@ def fill_spiral_diagonal_board(board: Board, left_first: bool) -> Iterator[Coord
 def fill_gilbert_board(board: Board) -> Iterator[CoordData]:
     for i in range(board.height * board.width):
         coord = gilbert_d2xy(i, board.height, board.width)
-        yield (coord[1], coord[0])
+        yield coord
 
 
 def fill_mid_gilbert_board(board: Board) -> Iterator[CoordData]:
     total_cells = board.height * board.width
     middle = total_cells // 2
     coord = gilbert_d2xy(middle, board.height, board.width)
-    yield (coord[1], coord[0])
+    yield coord
     for i in range(1, middle):
         coord = gilbert_d2xy(middle + i, board.height, board.width)
-        yield (coord[1], coord[0])
+        yield coord
         coord = gilbert_d2xy(middle - i, board.height, board.width)
-        yield (coord[1], coord[0])
+        yield coord
 
 
 def build_generator(board: Board) -> Iterator[CoordData]:
@@ -192,6 +192,8 @@ def build_generator(board: Board) -> Iterator[CoordData]:
     if board.choice == ChoiceOptions.SPIRAL_DIAGONAL_2:
         return fill_spiral_diagonal_board(board, False)
     if board.choice == ChoiceOptions.GILBERT_CURVE:
+        return fill_gilbert_board(board)
+    if board.choice == ChoiceOptions.MID_GILBERT_CURVE:
         return fill_mid_gilbert_board(board)
     raise NotImplementedError("choose a valid option")
 

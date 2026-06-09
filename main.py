@@ -1,8 +1,8 @@
 from boards import Board, ChoiceOptions, Piece
 
 
-WIDTH = 8
-HEIGHT = 8
+WIDTH = 256
+HEIGHT = 256
 KNIGHT_MOVES = (
     (-2, -1),
     (-2, 1),
