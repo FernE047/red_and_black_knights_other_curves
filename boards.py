@@ -52,7 +52,7 @@ class Board:
             if not self.is_inside(ay, ax):
                 continue
             cell = self.board[ay][ax]
-            if cell and cell != piece:
+            if cell and cell != piece.value:
                 return False
         return True
 

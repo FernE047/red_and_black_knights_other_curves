@@ -32,8 +32,6 @@ def gilbert_d2xy_r(dst_idx, cur_idx, x, y, ax, ay, bx, by) -> tuple[int, int]:
     (dax, day) = (sgn(ax), sgn(ay))  # unit major direction
     (dbx, dby) = (sgn(bx), sgn(by))  # unit orthogonal direction
 
-    dx = dax + dbx
-    dy = day + dby
     di = dst_idx - cur_idx
 
     if h == 1:
