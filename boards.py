@@ -3,6 +3,7 @@ from typing import Iterator
 from generators import build_generator, ChoiceOptions, safe_next
 
 SAVE_FOLDER = Path("./out")
+DEBUG_FOLDER = Path("./debug")
 BACKGROUND_COLOR = (255, 255, 255, 255)
 TEAM_COLORS = [
     (0, 0, 0, 255),
@@ -102,7 +103,7 @@ class Board:
                     continue
                 img.putpixel((x, y), TEAM_COLORS[piece - 1])
         y, x = coord
-        img.putpixel((x, y), TEAM_COLORS[piece - 1])
-        file_amount = sum(1 for item in SAVE_FOLDER.iterdir() if item.is_file())
-        output_image = SAVE_FOLDER / f"output_{file_amount}.png"
+        img.putpixel((x, y), TEAM_COLORS[piece_lol.value - 1])
+        file_amount = sum(1 for item in DEBUG_FOLDER.iterdir() if item.is_file())
+        output_image = DEBUG_FOLDER / f"output_{file_amount}.png"
         img.save(output_image)

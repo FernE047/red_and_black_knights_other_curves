@@ -1,2 +1,4 @@
-/out
+out/*
+debug/*
+!.gitkeep
 /__pycache__
