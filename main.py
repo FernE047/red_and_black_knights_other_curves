@@ -29,7 +29,7 @@ def main() -> None:
     board = Board(
         HEIGHT,
         WIDTH,
-        [Piece(n, KNIGHT_MOVES) for n in range(1, 2)],
+        [Piece(n, KNIGHT_MOVES) for n in range(1, 3)],
         ChoiceOptions.GILBERT_CURVE,
     )
     board.solve()

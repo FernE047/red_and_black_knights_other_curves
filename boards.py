@@ -61,6 +61,7 @@ class Board:
             piece = self.piece_orders[turn]
             generator = self.generators[piece.value - 1]
             coord = safe_next(generator)
+            self.render_debug(coord, piece)
             if not coord:
                 break
             y, x = coord
@@ -83,6 +84,25 @@ class Board:
                 if piece == 0:
                     continue
                 img.putpixel((x, y), TEAM_COLORS[piece - 1])
+        file_amount = sum(1 for item in SAVE_FOLDER.iterdir() if item.is_file())
+        output_image = SAVE_FOLDER / f"output_{file_amount}.png"
+        img.save(output_image)
+
+    def render_debug(self, coord: CoordData | None, piece_lol: Piece) -> None:
+        from PIL import Image
+
+        if coord is None:
+            return
+
+        img = Image.new("RGBA", (self.width, self.height), BACKGROUND_COLOR)
+        for y in range(self.height):
+            for x in range(self.width):
+                piece = self.board[y][x]
+                if piece == 0:
+                    continue
+                img.putpixel((x, y), TEAM_COLORS[piece - 1])
+        y, x = coord
+        img.putpixel((x, y), TEAM_COLORS[piece - 1])
         file_amount = sum(1 for item in SAVE_FOLDER.iterdir() if item.is_file())
         output_image = SAVE_FOLDER / f"output_{file_amount}.png"
         img.save(output_image)

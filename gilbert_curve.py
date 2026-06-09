@@ -5,7 +5,10 @@
 # type: ignore
 
 
-def gilbert_d2xy(idx, w, h):
+from typing import Literal
+
+
+def gilbert_d2xy(idx, w, h) -> tuple[int, int]:
     """
     Generalized Hilbert ('gilbert') space-filling curve for arbitrary-sized
     2D rectangular grids. Takes a position along the gilbert curve and returns
@@ -17,11 +20,11 @@ def gilbert_d2xy(idx, w, h):
     return gilbert_d2xy_r(idx, 0, 0, 0, 0, h, w, 0)
 
 
-def sgn(x):
+def sgn(x) -> Literal[-1] | Literal[1] | Literal[0]:
     return -1 if x < 0 else (1 if x > 0 else 0)
 
 
-def gilbert_d2xy_r(dst_idx, cur_idx, x, y, ax, ay, bx, by):
+def gilbert_d2xy_r(dst_idx, cur_idx, x, y, ax, ay, bx, by) -> tuple[int, int]:
 
     w = abs(ax + ay)
     h = abs(bx + by)
