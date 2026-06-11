@@ -31,6 +31,16 @@ class Direction(Enum):
     UPLEFT = 7
 
 
+DIRECTION_OFFSETS = {
+    Direction.UP: (-1, 0),
+    Direction.UPRIGHT: (-1, 1),
+    Direction.RIGHT: (0, 1),
+    Direction.DOWNRIGHT: (1, 1),
+    Direction.DOWN: (1, 0),
+    Direction.DOWNLEFT: (1, -1),
+    Direction.LEFT: (0, -1),
+    Direction.UPLEFT: (-1, -1),
+}
 ORTHOGONAL_DIRECTIONS = (Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT)
 DIAGONAL_DIRECTIONS = (
     Direction.UPRIGHT,
@@ -44,22 +54,8 @@ CoordData = tuple[int, int]
 
 def apply_direction(coord: CoordData, direction: Direction) -> CoordData:
     y, x = coord
-    if direction == Direction.UP:
-        return (y - 1, x)
-    if direction == Direction.UPRIGHT:
-        return (y - 1, x + 1)
-    if direction == Direction.RIGHT:
-        return (y, x + 1)
-    if direction == Direction.DOWNRIGHT:
-        return (y + 1, x + 1)
-    if direction == Direction.DOWN:
-        return (y + 1, x)
-    if direction == Direction.DOWNLEFT:
-        return (y + 1, x - 1)
-    if direction == Direction.LEFT:
-        return (y, x - 1)
-    if direction == Direction.UPLEFT:
-        return (y - 1, x - 1)
+    offsets = DIRECTION_OFFSETS[direction]
+    return (y + offsets[0], x + offsets[1])
 
 
 def fill_simple_board(board: Board) -> Iterator[CoordData]:
