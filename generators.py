@@ -1,8 +1,8 @@
 from __future__ import annotations
-
 from enum import Enum
 from typing import TYPE_CHECKING, Iterator
 from gilbert_curve import gilbert_d2xy  # type: ignore
+import random
 
 if TYPE_CHECKING:
     from boards import Board
@@ -17,7 +17,9 @@ class ChoiceOptions(Enum):
     SPIRAL_DIAGONAL = 5
     SPIRAL_DIAGONAL_2 = 6
     GILBERT_CURVE = 7
-    MID_GILBERT_CURVE = 7
+    MID_GILBERT_CURVE = 8
+    RANDOM = 9
+    RANDOM_ROWS = 10
 
 
 class Direction(Enum):
@@ -165,12 +167,22 @@ def fill_mid_gilbert_board(board: Board) -> Iterator[CoordData]:
         yield coord
 
 
-def build_generator(board: Board) -> Iterator[CoordData]:
-    coords = list(fill_gilbert_board(board))
+def fill_random_board(board: Board) -> Iterator[CoordData]:
+    coords = [(y, x) for y in range(board.height) for x in range(board.width)]
+    random.shuffle(coords)
+    for coord in coords:
+        yield coord
 
-    print(len(coords))
-    print(len(set(coords)))
-    print(board.width * board.height)
+
+def fill_random_rows_board(board: Board) -> Iterator[CoordData]:
+    rows = list(range(board.height))
+    random.shuffle(rows)
+    for y in rows:
+        for x in range(board.width):
+            yield (y, x)
+
+
+def build_generator(board: Board) -> Iterator[CoordData]:
     if board.choice == ChoiceOptions.SIMPLE:
         return fill_simple_board(board)
     if board.choice == ChoiceOptions.SPIRAL:
@@ -191,6 +203,10 @@ def build_generator(board: Board) -> Iterator[CoordData]:
         return fill_gilbert_board(board)
     if board.choice == ChoiceOptions.MID_GILBERT_CURVE:
         return fill_mid_gilbert_board(board)
+    if board.choice == ChoiceOptions.RANDOM:
+        return fill_random_board(board)
+    if board.choice == ChoiceOptions.RANDOM_ROWS:
+        return fill_random_rows_board(board)
     raise NotImplementedError("choose a valid option")
 
 
