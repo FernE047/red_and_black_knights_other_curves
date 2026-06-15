@@ -1,6 +1,6 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterator
-from generators import build_generator, ChoiceOptions, safe_next
+from typing import TYPE_CHECKING
+from generators import GeneratorRecipe, safe_next
 
 if TYPE_CHECKING:
     from PIL import Image
@@ -34,19 +34,17 @@ class Board:
         height: int,
         width: int,
         piece_orders: list[Piece],
-        choice: ChoiceOptions,
+        generator_recipe: GeneratorRecipe,
         is_debug: bool = False,
     ) -> None:
         self.height = height
         self.width = width
-        self.cell_amount = height * width
         self.piece_orders = piece_orders
         self.colours_amount = max([p.value for p in piece_orders])
         self.board = [[0 for _ in range(width)] for _ in range(height)]
         self.ordered_cells: list[CoordData] = []
-        self.choice = choice
-        self.generators: list[Iterator[CoordData]] = [
-            build_generator(self) for _ in range(self.colours_amount)
+        self.generators = [
+            generator_recipe(height, width) for _ in range(self.colours_amount)
         ]
         self.is_debug = is_debug
 

@@ -1,11 +1,7 @@
-from __future__ import annotations
 from enum import Enum
-from typing import TYPE_CHECKING, Iterator
+from typing import Callable, Iterator
 from gilbert_curve import gilbert_d2xy  # type: ignore
 import random
-
-if TYPE_CHECKING:
-    from boards import Board
 
 
 class ChoiceOptions(Enum):
@@ -20,6 +16,9 @@ class ChoiceOptions(Enum):
     MID_GILBERT_CURVE = 8
     RANDOM = 9
     RANDOM_ROWS = 10
+    CHECKERBOARD = 11
+    CENTER_OUT_ROWS = 12
+    DIAGONAL_SWEEP = 13
 
 
 class Direction(Enum):
@@ -52,6 +51,7 @@ DIAGONAL_DIRECTIONS = (
 )
 
 CoordData = tuple[int, int]
+GeneratorRecipe = Callable[[int, int], Iterator[CoordData]]
 
 
 def apply_direction(coord: CoordData, direction: Direction) -> CoordData:
@@ -60,154 +60,168 @@ def apply_direction(coord: CoordData, direction: Direction) -> CoordData:
     return (y + offsets[0], x + offsets[1])
 
 
-def fill_simple_board(board: Board) -> Iterator[CoordData]:
-    for y in range(board.height):
-        for x in range(board.width):
-            coord = (y, x)
+def is_inside(y: int, x: int, height: int, width: int) -> bool:
+    return 0 <= y < height and 0 <= x < width
+
+
+def simple() -> GeneratorRecipe:
+    def generator(height: int, width: int) -> Iterator[CoordData]:
+        for y in range(height):
+            for x in range(width):
+                yield (y, x)
+
+    return generator
+
+
+def spiral(initial_coord: CoordData) -> GeneratorRecipe:
+    def generator(height: int, width: int) -> Iterator[CoordData]:
+        is_finished = False
+        coord = initial_coord
+        yield coord
+        movement = 1
+        while not is_finished:
+            is_finished = True
+            for direction in ORTHOGONAL_DIRECTIONS:
+                for _ in range(movement):
+                    coord = apply_direction(coord, direction)
+                    if is_inside(coord[0], coord[1], height, width):
+                        is_finished = False
+                        yield coord
+                if direction in [Direction.RIGHT, Direction.LEFT]:
+                    movement += 1
+    return generator
+
+
+def snake() -> GeneratorRecipe:
+    def generator(height: int, width: int) -> Iterator[CoordData]:
+        is_finished = False
+        coord = (0, 0)
+        yield coord
+        movement = 1
+        coord = apply_direction(coord, Direction.DOWN)
+        if not is_inside(coord[0], coord[1], height, width):
+            return
+        while not is_finished:
+            is_finished = True
+            for direction in (
+                Direction.RIGHT,
+                Direction.UP,
+                Direction.DOWN,
+                Direction.LEFT,
+            ):
+                for _ in range(movement):
+                    coord = apply_direction(coord, direction)
+                    if is_inside(coord[0], coord[1], height, width):
+                        is_finished = False
+                        yield coord
+                if direction == Direction.UP:
+                    coord = apply_direction(coord, Direction.RIGHT)
+                    if is_inside(coord[0], coord[1], height, width):
+                        is_finished = False
+                        yield coord
+                    movement += 1
+                if direction == Direction.LEFT:
+                    coord = apply_direction(coord, Direction.DOWN)
+                    if is_inside(coord[0], coord[1], height, width):
+                        is_finished = False
+                        yield coord
+                    movement += 1
+    return generator
+
+
+def spiral_diagonal(left_first: bool) -> GeneratorRecipe:
+    def generator(height: int, width: int) -> Iterator[CoordData]:
+        is_finished = False
+        coord = (0, 0)
+        yield coord
+        movement = 1
+        while not is_finished:
+            coord = apply_direction(coord, Direction.LEFT)
+            if left_first:
+                if is_inside(coord[0], coord[1], height, width):
+                    yield coord
+            is_finished = True
+            for direction in DIAGONAL_DIRECTIONS:
+                for step in range(movement):
+                    if (
+                        left_first
+                        and direction == Direction.UPLEFT
+                        and step == movement - 1
+                    ):
+                        break
+                    coord = apply_direction(coord, direction)
+                    if is_inside(coord[0], coord[1], height, width):
+                        is_finished = False
+                        yield coord
+            movement += 1
+    return generator
+
+
+def gilbert() -> GeneratorRecipe:
+    #just a wrapper LMAO
+    def generator(height: int, width: int) -> Iterator[CoordData]:
+        for i in range(height * width):
+            coord = gilbert_d2xy(i, height, width)
             yield coord
+    return generator
 
 
-def fill_spiral_board(board: Board, initial_coord: CoordData) -> Iterator[CoordData]:
-    is_finished = False
-    coord = initial_coord
-    yield coord
-    movement = 1
-    while not is_finished:
-        is_finished = True
-        for direction in ORTHOGONAL_DIRECTIONS:
-            for _ in range(movement):
-                coord = apply_direction(coord, direction)
-                if board.is_inside(coord[0], coord[1]):
-                    is_finished = False
-                    yield coord
-            if direction in [Direction.RIGHT, Direction.LEFT]:
-                movement += 1
-    board.cell_amount = len(board.ordered_cells)
-
-
-def fill_snake_board(board: Board) -> Iterator[CoordData]:
-    is_finished = False
-    coord = (0, 0)
-    yield coord
-    movement = 1
-    coord = apply_direction(coord, Direction.DOWN)
-    if not board.is_inside(coord[0], coord[1]):
-        board.cell_amount = len(board.ordered_cells)
-        return
-    while not is_finished:
-        is_finished = True
-        for direction in (
-            Direction.RIGHT,
-            Direction.UP,
-            Direction.DOWN,
-            Direction.LEFT,
-        ):
-            for _ in range(movement):
-                coord = apply_direction(coord, direction)
-                if board.is_inside(coord[0], coord[1]):
-                    is_finished = False
-                    yield coord
-            if direction == Direction.UP:
-                coord = apply_direction(coord, Direction.RIGHT)
-                if board.is_inside(coord[0], coord[1]):
-                    is_finished = False
-                    yield coord
-                movement += 1
-            if direction == Direction.LEFT:
-                coord = apply_direction(coord, Direction.DOWN)
-                if board.is_inside(coord[0], coord[1]):
-                    is_finished = False
-                    yield coord
-                movement += 1
-    board.cell_amount = len(board.ordered_cells)
-
-
-def fill_spiral_diagonal_board(board: Board, left_first: bool) -> Iterator[CoordData]:
-    is_finished = False
-    coord = (0, 0)
-    yield coord
-    movement = 1
-    while not is_finished:
-        coord = apply_direction(coord, Direction.LEFT)
-        if left_first:
-            if board.is_inside(coord[0], coord[1]):
-                yield coord
-        is_finished = True
-        for direction in DIAGONAL_DIRECTIONS:
-            for step in range(movement):
-                if (
-                    left_first
-                    and direction == Direction.UPLEFT
-                    and step == movement - 1
-                ):
-                    break
-                coord = apply_direction(coord, direction)
-                if board.is_inside(coord[0], coord[1]):
-                    is_finished = False
-                    yield coord
-        movement += 1
-    board.cell_amount = len(board.ordered_cells)
-
-
-def fill_gilbert_board(board: Board) -> Iterator[CoordData]:
-    for i in range(board.height * board.width):
-        coord = gilbert_d2xy(i, board.height, board.width)
+def mid_gilbert() -> GeneratorRecipe:
+    def generator(height: int, width: int) -> Iterator[CoordData]:
+        total_cells = height * width
+        middle = total_cells // 2
+        coord = gilbert_d2xy(middle, height, width)
         yield coord
+        for i in range(1, middle):
+            coord = gilbert_d2xy(middle + i, height, width)
+            yield coord
+            coord = gilbert_d2xy(middle - i, height, width)
+            yield coord
+    return generator
 
 
-def fill_mid_gilbert_board(board: Board) -> Iterator[CoordData]:
-    total_cells = board.height * board.width
-    middle = total_cells // 2
-    coord = gilbert_d2xy(middle, board.height, board.width)
-    yield coord
-    for i in range(1, middle):
-        coord = gilbert_d2xy(middle + i, board.height, board.width)
-        yield coord
-        coord = gilbert_d2xy(middle - i, board.height, board.width)
-        yield coord
+def random_generator() -> GeneratorRecipe:
+    def generator(height: int, width: int) -> Iterator[CoordData]:
+        coords = [(y, x) for y in range(height) for x in range(width)]
+        random.shuffle(coords)
+        for coord in coords:
+            yield coord
+    return generator
 
 
-def fill_random_board(board: Board) -> Iterator[CoordData]:
-    coords = [(y, x) for y in range(board.height) for x in range(board.width)]
-    random.shuffle(coords)
-    for coord in coords:
-        yield coord
+def random_rows() -> GeneratorRecipe:
+    def generator(height: int, width: int) -> Iterator[CoordData]:
+        rows = list(range(height))
+        random.shuffle(rows)
+        for y in rows:
+            for x in range(width):
+                yield (y, x)
+    return generator
 
 
-def fill_random_rows_board(board: Board) -> Iterator[CoordData]:
-    rows = list(range(board.height))
-    random.shuffle(rows)
+def checkerboard(height: int, width: int) -> Iterator[CoordData]:
+    for parity in (0, 1, 2):
+        for y in range(height):
+            for x in range(width):
+                if (y + x) % 3 == parity:
+                    yield (y, x)
+
+
+def center_out_rows(height: int, width: int) -> Iterator[CoordData]:
+    center = (height - 1) / 2
+    rows = sorted(range(height), key=lambda y: abs(y - center))
+
     for y in rows:
-        for x in range(board.width):
+        for x in range(width):
             yield (y, x)
 
 
-def build_generator(board: Board) -> Iterator[CoordData]:
-    if board.choice == ChoiceOptions.SIMPLE:
-        return fill_simple_board(board)
-    if board.choice == ChoiceOptions.SPIRAL:
-        return fill_spiral_board(board, (board.height // 2, board.width // 2))
-    if board.choice == ChoiceOptions.SPIRAL_2:
-        return fill_spiral_board(board, (0, 0))
-    if board.choice == ChoiceOptions.SPIRAL_3:
-        return fill_spiral_board(board, (0, board.width // 2))
-    if board.choice == ChoiceOptions.SNAKE:
-        return fill_snake_board(
-            board,
-        )
-    if board.choice == ChoiceOptions.SPIRAL_DIAGONAL:
-        return fill_spiral_diagonal_board(board, True)
-    if board.choice == ChoiceOptions.SPIRAL_DIAGONAL_2:
-        return fill_spiral_diagonal_board(board, False)
-    if board.choice == ChoiceOptions.GILBERT_CURVE:
-        return fill_gilbert_board(board)
-    if board.choice == ChoiceOptions.MID_GILBERT_CURVE:
-        return fill_mid_gilbert_board(board)
-    if board.choice == ChoiceOptions.RANDOM:
-        return fill_random_board(board)
-    if board.choice == ChoiceOptions.RANDOM_ROWS:
-        return fill_random_rows_board(board)
-    raise NotImplementedError("choose a valid option")
+def diagonal_sweep(height: int, width: int) -> Iterator[CoordData]:
+    for diagonal in range(height + width - 1):
+        for y in range(height):
+            x = diagonal - y
+            if is_inside(y, x, height, width):
+                yield (y, x)
 
 
 def safe_next(iterator: Iterator[CoordData]) -> CoordData | None:
