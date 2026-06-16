@@ -1,4 +1,5 @@
 from pathlib import Path
+from pieces import Piece
 from typing import TYPE_CHECKING
 from generators import GeneratorRecipe, safe_next
 
@@ -20,12 +21,6 @@ TEAM_COLORS = [
 ]
 
 CoordData = tuple[int, int]
-
-
-class Piece:
-    def __init__(self, value: int, moves: tuple[tuple[int, int], ...]) -> None:
-        self.value = value
-        self.moves = moves
 
 
 class Board:
@@ -53,14 +48,19 @@ class Board:
 
     def is_coord_safe(self, coord: CoordData, piece: Piece) -> bool:
         y, x = coord
-        for dy, dx in piece.moves:
+        consecutive_fails = 0
+        for dy, dx in piece.get_moves():
             ay = y + dy
             ax = x + dx
             if not self.is_inside(ay, ax):
+                consecutive_fails += 1
+                if consecutive_fails >= len(piece.rule_moves):
+                    break
                 continue
             cell = self.board[ay][ax]
             if cell and cell != piece.value:
                 return False
+            consecutive_fails = 0
         return True
 
     def solve(self) -> None:

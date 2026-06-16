@@ -1,31 +1,22 @@
-from boards import Board, Piece
+from boards import Board
 import effects
 import generators
+import pieces
 
 
-WIDTH = 512
-HEIGHT = 512
-KNIGHT_MOVES = (
-    (-2, -1),
-    (-2, 1),
-    (-1, -2),
-    (-1, 2),
-    (1, -2),
-    (1, 2),
-    (2, -1),
-    (2, 1),
-)
+WIDTH = 1000
+HEIGHT = 1000
 
 
 def main() -> None:
     generator_builder = effects.apply_effects(
         generators.spiral((HEIGHT//2,WIDTH//2)),
-        effects.glitch_swap_effect(0.01),
+        effects.normal_effect(),
     )
     board = Board(
         HEIGHT,
         WIDTH,
-        [Piece(n, KNIGHT_MOVES) for n in range(1, 3)],
+        [pieces.Knight(n) for n in range(1, 3)],
         generator_builder,
     )
     board.solve()
