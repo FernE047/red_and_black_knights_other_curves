@@ -3,20 +3,19 @@ import effects
 import generators
 import pieces
 
-
-WIDTH = 1000
-HEIGHT = 1000
+WIDTH = 200
+HEIGHT = 200
 
 
 def main() -> None:
     generator_builder = effects.apply_effects(
-        generators.spiral((HEIGHT//2,WIDTH//2)),
+        generators.gilbert(),
         effects.normal_effect(),
     )
     board = Board(
         HEIGHT,
         WIDTH,
-        [pieces.Knight(n) for n in range(1, 3)],
+        [pieces.Queen(1), pieces.Knight(2)],
         generator_builder,
     )
     board.solve()

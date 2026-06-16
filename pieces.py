@@ -24,18 +24,35 @@ class Piece:
     def get_moves(self) -> Iterator[tuple[int, int]]:
         for move in self.fixed_moves:
             yield move
-        n = 0
-        while True:
-            for move in self.rule_moves:
-                y, x = move
-                yield (y * n, x * n)
-            n += 1
+        if self.rule_moves:
+            n = 1
+            while True:
+                for move in self.rule_moves:
+                    y, x = move
+                    yield (y * n, x * n)
+                n += 1
 
 
 def Knight(team: int) -> Piece:
     return Piece(
         team,
         (
+            (-2, -1),
+            (-2, 1),
+            (-1, -2),
+            (-1, 2),
+            (1, -2),
+            (1, 2),
+            (2, -1),
+            (2, 1),
+        ),
+    )
+
+
+def Jump_Knight(team: int) -> Piece:
+    return Piece(
+        team,
+        rule_moves=(
             (-2, -1),
             (-2, 1),
             (-1, -2),
@@ -112,5 +129,48 @@ def Queen(team: int) -> Piece:
             (-1, 1),
             (1, -1),
             (1, 1),
+        ),
+    )
+
+
+def Crab(team: int) -> Piece:
+    return Piece(team, rule_moves=((0, 1), (0, -1)))
+
+
+def Jump_King(team: int) -> Piece:
+    return Piece(
+        team,
+        (
+            (-2, 0),
+            (2, 0),
+            (0, -2),
+            (0, 2),
+            (-2, -2),
+            (-2, 2),
+            (2, -2),
+            (2, 2),
+        ),
+    )
+
+def Bat(team:int) -> Piece:
+    return Piece(
+        team,
+        rule_moves=(
+            (-2, 0),
+            (2, 0),
+            (0, -2),
+            (0, 2),
+        ),
+    )
+
+
+def Baby_Bat(team: int) -> Piece:
+    return Piece(
+        team,
+        (
+            (-2, 0),
+            (2, 0),
+            (0, -2),
+            (0, 2),
         ),
     )

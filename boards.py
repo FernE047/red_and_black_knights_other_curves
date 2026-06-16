@@ -53,14 +53,32 @@ class Board:
             ay = y + dy
             ax = x + dx
             if not self.is_inside(ay, ax):
-                consecutive_fails += 1
-                if consecutive_fails >= len(piece.rule_moves):
-                    break
+                if len(piece.rule_moves):
+                    consecutive_fails += 1
+                    if consecutive_fails >= len(piece.rule_moves):
+                        break
                 continue
             cell = self.board[ay][ax]
             if cell and cell != piece.value:
                 return False
             consecutive_fails = 0
+        for opponent in self.piece_orders:
+            if opponent.value == piece.value:
+                continue
+            consecutive_fails = 0
+            for dy, dx in opponent.get_moves():
+                ay = y + dy
+                ax = x + dx
+                if not self.is_inside(ay, ax):
+                    if len(opponent.rule_moves):
+                        consecutive_fails += 1
+                        if consecutive_fails >= len(opponent.rule_moves):
+                            break
+                    continue
+                cell = self.board[ay][ax]
+                if cell and cell == opponent.value:
+                    return False
+                consecutive_fails = 0
         return True
 
     def solve(self) -> None:
