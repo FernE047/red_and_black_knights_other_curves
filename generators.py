@@ -189,6 +189,37 @@ def random_rows() -> GeneratorRecipe:
                 yield (y, x)
     return generator
 
+def center_out_spiral() -> GeneratorRecipe:
+    """Gera coordenadas do centro para as bordas em uma espiral anti-horária contínua."""
+    import math
+
+    def generator(height: int, width: int) -> Iterator[CoordData]:
+        center_y, center_x = height // 2, width // 2
+        coords = [(y, x) for y in range(height) for x in range(width)]
+        def get_spiral_weight(coord: CoordData) -> float:
+            y, x = coord
+            dy = y - center_y
+            dx = x - center_x
+            distance_sq = dy**2 + dx**2
+            angle = math.atan2(dy, dx) + math.pi
+            return (distance_sq * 10) + angle
+        coords.sort(key=get_spiral_weight)
+        for coord in coords:
+            yield coord
+
+    return generator
+
+def perlin_noise_flow(scale: float = 0.1) -> GeneratorRecipe:
+    import math
+    def generator(height: int, width: int) -> Iterator[CoordData]:
+        coords = [(y, x) for y in range(height) for x in range(width)]
+        def get_density(y: int, x: int) -> float:
+            val = math.sin(y * scale) + math.cos(x * scale) + math.sin((y + x) * scale)
+            return val
+        coords.sort(key=lambda c: get_density(c[0], c[1]))
+        for coord in coords:
+            yield coord
+    return generator
 
 def safe_next(iterator: Iterator[CoordData]) -> CoordData | None:
     try:

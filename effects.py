@@ -19,8 +19,7 @@ def apply_effects(
 
 def normal_effect() -> EffectRecipe:
     def effect(iterator: Iterator[CoordData]) -> Iterator[CoordData]:
-        for coord in iterator:
-            yield coord
+        yield from iterator
 
     return effect
 
@@ -49,5 +48,52 @@ def reverse_effect() -> EffectRecipe:
         for coord in iterator:
             cache.append(coord)
         yield from reversed(cache)
+
+    return effect
+
+
+def permutation_effect(permutation: list[int]) -> EffectRecipe:
+    def effect(iterator: Iterator[CoordData]) -> Iterator[CoordData]:
+        cache: list[CoordData] = []
+        for coord in iterator:
+            cache.append(coord)
+            if len(cache) == len(permutation):
+                for index in permutation:
+                    yield cache[index]
+                cache = []
+        if len(cache):
+            yield from cache
+
+    return effect
+
+
+def section_effect(section_size: int) -> EffectRecipe:
+    def effect(iterator: Iterator[CoordData]) -> Iterator[CoordData]:
+        sections: list[list[CoordData]] = []
+        current_section: list[CoordData] = []
+        for coord in iterator:
+            current_section.append(coord)
+            if len(current_section) == section_size:
+                sections.append(current_section)
+                current_section = []
+        if sections[-1] != current_section:
+            sections.append(current_section)
+        for index in range(section_size):
+            for section in sections:
+                if index < len(section):
+                    yield section[index]
+
+    return effect
+
+
+def gravity_effect() -> EffectRecipe:
+    def effect(iterator: Iterator[CoordData]) -> Iterator[CoordData]:
+        y_coords: dict[int, int] = {}
+        for coord in iterator:
+            _, x = coord
+            if x not in y_coords:
+                y_coords[x] = 0
+            yield (y_coords[x], x)
+            y_coords[x] += 1
 
     return effect
