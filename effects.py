@@ -1,5 +1,6 @@
 from collections.abc import Callable, Iterator
 from generators import CoordData, GeneratorRecipe
+import random
 
 EffectRecipe = Callable[[Iterator[CoordData]], Iterator[CoordData]]
 
@@ -96,4 +97,42 @@ def gravity_effect() -> EffectRecipe:
             yield (y_coords[x], x)
             y_coords[x] += 1
 
+    return effect
+
+
+def center_out_effect() -> EffectRecipe:
+    def effect(iterator: Iterator[CoordData]) -> Iterator[CoordData]:
+        cache: list[CoordData] = []
+        for coord in iterator:
+            cache.append(coord)
+        center = len(cache) // 2
+        offset = 0
+        while offset <= center:
+            try:
+                yield cache[center + offset]
+            except IndexError:
+                pass
+            try:
+                yield cache[center - offset]
+            except IndexError:
+                pass
+            offset += 1
+
+    return effect
+
+def glitch_swap_effect(probability: float) -> EffectRecipe:
+    probability = max(0.0, min(1.0, probability))
+    def effect(iterator: Iterator[CoordData]) -> Iterator[CoordData]:
+        coords = list(iterator)
+        length = len(coords)
+
+        if length < 2 or probability == 0.0:
+            yield from coords
+            return
+
+        for i in range(length):
+            if random.random() < probability:
+                swap_index = random.randint(0, length - 1)
+                coords[i], coords[swap_index] = coords[swap_index], coords[i]
+        yield from coords
     return effect

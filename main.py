@@ -3,8 +3,8 @@ import effects
 import generators
 
 
-WIDTH = 1000
-HEIGHT = 1000
+WIDTH = 512
+HEIGHT = 512
 KNIGHT_MOVES = (
     (-2, -1),
     (-2, 1),
@@ -15,31 +15,20 @@ KNIGHT_MOVES = (
     (2, -1),
     (2, 1),
 )
-TRI_KNIGHT_MOVES = (
-    (-3, -1),
-    (-3, 1),
-    (-1, -3),
-    (-1, 3),
-    (1, -3),
-    (1, 3),
-    (3, -1),
-    (3, 1),
-)
 
 
 def main() -> None:
-    for size in range(1,1000):
-        generator_builder = effects.apply_effects(
-            generators.spiral((size//2, size//2)),
-            effects.normal_effect(),
-        )
-        board = Board(
-            size,
-            size,
-            [Piece(n, KNIGHT_MOVES) for n in range(1, 3)],
-            generator_builder,
-        )
-        board.solve()
+    generator_builder = effects.apply_effects(
+        generators.spiral((HEIGHT//2,WIDTH//2)),
+        effects.glitch_swap_effect(0.01),
+    )
+    board = Board(
+        HEIGHT,
+        WIDTH,
+        [Piece(n, KNIGHT_MOVES) for n in range(1, 3)],
+        generator_builder,
+    )
+    board.solve()
 
 
 if __name__ == "__main__":

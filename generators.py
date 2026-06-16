@@ -157,20 +157,6 @@ def gilbert() -> GeneratorRecipe:
     return generator
 
 
-def mid_gilbert() -> GeneratorRecipe:
-    def generator(height: int, width: int) -> Iterator[CoordData]:
-        total_cells = height * width
-        middle = total_cells // 2
-        coord = gilbert_d2xy(middle, height, width)
-        yield coord
-        for i in range(1, middle):
-            coord = gilbert_d2xy(middle + i, height, width)
-            yield coord
-            coord = gilbert_d2xy(middle - i, height, width)
-            yield coord
-    return generator
-
-
 def random_generator() -> GeneratorRecipe:
     def generator(height: int, width: int) -> Iterator[CoordData]:
         coords = [(y, x) for y in range(height) for x in range(width)]
