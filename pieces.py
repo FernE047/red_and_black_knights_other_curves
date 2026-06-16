@@ -33,20 +33,28 @@ class Piece:
                 n += 1
 
 
-def Knight(team: int) -> Piece:
+def Leaper(team: int, jump_a: int, jump_b: int) -> Piece:
     return Piece(
         team,
         (
-            (-2, -1),
-            (-2, 1),
-            (-1, -2),
-            (-1, 2),
-            (1, -2),
-            (1, 2),
-            (2, -1),
-            (2, 1),
+            (-jump_a, -jump_b),
+            (-jump_a, jump_b),
+            (-jump_b, -jump_a),
+            (-jump_b, jump_a),
+            (jump_b, -jump_a),
+            (jump_b, jump_a),
+            (jump_a, -jump_b),
+            (jump_a, jump_b),
         ),
     )
+
+
+def Knight(team: int) -> Piece:
+    return Leaper(team, 1, 2)
+
+
+def Camel(team: int) -> Piece:
+    return Leaper(team, 1, 3)
 
 
 def Jump_Knight(team: int) -> Piece:
@@ -152,7 +160,8 @@ def Jump_King(team: int) -> Piece:
         ),
     )
 
-def Bat(team:int) -> Piece:
+
+def Bat(team: int) -> Piece:
     return Piece(
         team,
         rule_moves=(
