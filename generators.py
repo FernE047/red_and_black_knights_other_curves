@@ -129,26 +129,17 @@ def snake() -> GeneratorRecipe:
     return generator
 
 
-def spiral_diagonal(left_first: bool) -> GeneratorRecipe:
+def spiral_diagonal(initial_coord: CoordData) -> GeneratorRecipe:
     def generator(height: int, width: int) -> Iterator[CoordData]:
         is_finished = False
-        coord = (0, 0)
+        coord = initial_coord
         yield coord
         movement = 1
         while not is_finished:
             coord = apply_direction(coord, Direction.LEFT)
-            if left_first:
-                if is_inside(coord[0], coord[1], height, width):
-                    yield coord
             is_finished = True
             for direction in DIAGONAL_DIRECTIONS:
-                for step in range(movement):
-                    if (
-                        left_first
-                        and direction == Direction.UPLEFT
-                        and step == movement - 1
-                    ):
-                        break
+                for _ in range(movement):
                     coord = apply_direction(coord, direction)
                     if is_inside(coord[0], coord[1], height, width):
                         is_finished = False
@@ -197,31 +188,6 @@ def random_rows() -> GeneratorRecipe:
             for x in range(width):
                 yield (y, x)
     return generator
-
-
-def checkerboard(height: int, width: int) -> Iterator[CoordData]:
-    for parity in (0, 1, 2):
-        for y in range(height):
-            for x in range(width):
-                if (y + x) % 3 == parity:
-                    yield (y, x)
-
-
-def center_out_rows(height: int, width: int) -> Iterator[CoordData]:
-    center = (height - 1) / 2
-    rows = sorted(range(height), key=lambda y: abs(y - center))
-
-    for y in rows:
-        for x in range(width):
-            yield (y, x)
-
-
-def diagonal_sweep(height: int, width: int) -> Iterator[CoordData]:
-    for diagonal in range(height + width - 1):
-        for y in range(height):
-            x = diagonal - y
-            if is_inside(y, x, height, width):
-                yield (y, x)
 
 
 def safe_next(iterator: Iterator[CoordData]) -> CoordData | None:
