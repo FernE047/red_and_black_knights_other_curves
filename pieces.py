@@ -1,4 +1,4 @@
-from typing import Iterator
+from typing import Any, Iterator
 
 
 class Piece:
@@ -34,7 +34,14 @@ class Piece:
 
     def get_opposite_moves(self) -> Iterator[tuple[int, int]]:
         for move in self.get_moves():
-            yield (-1 * move[0],-1 * move[1])
+            yield (-1 * move[0], -1 * move[1])
+
+    def __add__(self, other: Any) -> "Piece":
+        if not isinstance(other, Piece):
+            raise NotImplementedError("only pieces can add to pieces")
+        fixed_moves = other.fixed_moves + self.fixed_moves
+        rule_moves = other.rule_moves + self.rule_moves
+        return Piece(self.value, fixed_moves, rule_moves)
 
 
 def Leaper(team: int, jump_a: int, jump_b: int) -> Piece:
@@ -83,6 +90,16 @@ def Pawn(team: int) -> Piece:
         (
             (-1, -1),
             (-1, 1),
+        ),
+    )
+
+
+def Black_Pawn(team: int) -> Piece:
+    return Piece(
+        team,
+        (
+            (1, -1),
+            (1, 1),
         ),
     )
 
