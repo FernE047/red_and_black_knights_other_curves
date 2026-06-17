@@ -66,7 +66,7 @@ class Board:
             if opponent.value == piece.value:
                 continue
             consecutive_fails = 0
-            for dy, dx in opponent.get_moves():
+            for dy, dx in opponent.get_opposite_moves():
                 ay = y + dy
                 ax = x + dx
                 if not self.is_inside(ay, ax):

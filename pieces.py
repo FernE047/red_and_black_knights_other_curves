@@ -32,6 +32,10 @@ class Piece:
                     yield (y * n, x * n)
                 n += 1
 
+    def get_opposite_moves(self) -> Iterator[tuple[int, int]]:
+        for move in self.get_moves():
+            yield (-1 * move[0],-1 * move[1])
+
 
 def Leaper(team: int, jump_a: int, jump_b: int) -> Piece:
     return Piece(
@@ -79,8 +83,6 @@ def Pawn(team: int) -> Piece:
         (
             (-1, -1),
             (-1, 1),
-            (1, -1),
-            (1, 1),
         ),
     )
 
