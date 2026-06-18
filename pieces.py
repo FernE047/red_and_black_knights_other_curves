@@ -202,3 +202,22 @@ def Baby_Bat(team: int) -> Piece:
             (0, 2),
         ),
     )
+
+
+def Sea_Star(team: int, variation: int = 0) -> Piece:
+    moves = ((0, 2), (2, 1), (1, -2), (-1, -2), (-2, 1))
+    if variation == 1:
+        moves = ((0, 2), (-2, 0), (-1, -2), (2, 1), (-2, 2))
+    elif variation == 2:
+        moves = ((-1, 2), (-2, 0), (-1, -2), (2, -1), (2, 1))
+    elif variation == 3:
+        moves = ((-1, 2), (-2, 0), (0, -2), (2, -1), (2, 2))
+    elif variation == 4:
+        moves = ((-1, 2), (-2, -1), (0, -2), (2, -1), (1, 2))
+    elif variation == 5:
+        moves = ((-2, 2), (-2, -1), (0, -2), (2, 0), (1, 2))
+    elif variation == 6:
+        moves = ((-2, 1), (-2, -1), (1, -2), (2, 0), (1, 2))
+    elif variation == 7:
+        moves = ((-2, 1), (-2, -2), (1, -2), (2, 0), (0, 2))
+    return Piece(team, moves)

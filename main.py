@@ -3,8 +3,8 @@ import effects
 import generators
 import pieces
 
-WIDTH = 100
-HEIGHT = 100
+WIDTH = 1000
+HEIGHT = 1000
 
 
 def main() -> None:
@@ -15,7 +15,7 @@ def main() -> None:
     board = Board(
         HEIGHT,
         WIDTH,
-        [pieces.Knight(1) + pieces.Bishop(1), pieces.Knight(2) + pieces.Bishop(2)],
+        [pieces.Knight(1), pieces.Sea_Star(2,4)],
         generator_builder,
     )
     board.solve()
