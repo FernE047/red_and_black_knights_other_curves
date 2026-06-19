@@ -1,15 +1,16 @@
-from collections.abc import Callable, Iterator
+from collections.abc import Callable
 from generators import CoordData, GeneratorRecipe
+from models import Generator
 import random
 
-EffectRecipe = Callable[[Iterator[CoordData]], Iterator[CoordData]]
+EffectRecipe = Callable[[Generator], Generator]
 
 
 def apply_effects(
     generator: GeneratorRecipe,
     *effects: EffectRecipe,
 ) -> GeneratorRecipe:
-    def new_generator(height: int, width: int) -> Iterator[CoordData]:
+    def new_generator(height: int, width: int) -> Generator:
         iterator = generator(height, width)
         for effect in effects:
             iterator = effect(iterator)
@@ -19,14 +20,14 @@ def apply_effects(
 
 
 def normal_effect() -> EffectRecipe:
-    def effect(iterator: Iterator[CoordData]) -> Iterator[CoordData]:
+    def effect(iterator: Generator) -> Generator:
         yield from iterator
 
     return effect
 
 
 def parity_effect(parity_number: int) -> EffectRecipe:
-    def effect(iterator: Iterator[CoordData]) -> Iterator[CoordData]:
+    def effect(iterator: Generator) -> Generator:
         parities_cache: list[list[CoordData]] = [[] for _ in range(parity_number - 1)]
         parity = 0
         for coord in iterator:
@@ -44,7 +45,7 @@ def parity_effect(parity_number: int) -> EffectRecipe:
 
 
 def reverse_effect() -> EffectRecipe:
-    def effect(iterator: Iterator[CoordData]) -> Iterator[CoordData]:
+    def effect(iterator: Generator) -> Generator:
         cache: list[CoordData] = []
         for coord in iterator:
             cache.append(coord)
@@ -54,7 +55,7 @@ def reverse_effect() -> EffectRecipe:
 
 
 def permutation_effect(permutation: list[int]) -> EffectRecipe:
-    def effect(iterator: Iterator[CoordData]) -> Iterator[CoordData]:
+    def effect(iterator: Generator) -> Generator:
         cache: list[CoordData] = []
         for coord in iterator:
             cache.append(coord)
@@ -69,7 +70,7 @@ def permutation_effect(permutation: list[int]) -> EffectRecipe:
 
 
 def section_effect(section_size: int) -> EffectRecipe:
-    def effect(iterator: Iterator[CoordData]) -> Iterator[CoordData]:
+    def effect(iterator: Generator) -> Generator:
         sections: list[list[CoordData]] = []
         current_section: list[CoordData] = []
         for coord in iterator:
@@ -88,7 +89,7 @@ def section_effect(section_size: int) -> EffectRecipe:
 
 
 def gravity_effect() -> EffectRecipe:
-    def effect(iterator: Iterator[CoordData]) -> Iterator[CoordData]:
+    def effect(iterator: Generator) -> Generator:
         y_coords: dict[int, int] = {}
         for coord in iterator:
             _, x = coord
@@ -101,7 +102,7 @@ def gravity_effect() -> EffectRecipe:
 
 
 def center_out_effect() -> EffectRecipe:
-    def effect(iterator: Iterator[CoordData]) -> Iterator[CoordData]:
+    def effect(iterator: Generator) -> Generator:
         cache: list[CoordData] = []
         for coord in iterator:
             cache.append(coord)
@@ -120,9 +121,11 @@ def center_out_effect() -> EffectRecipe:
 
     return effect
 
+
 def glitch_swap_effect(probability: float) -> EffectRecipe:
     probability = max(0.0, min(1.0, probability))
-    def effect(iterator: Iterator[CoordData]) -> Iterator[CoordData]:
+
+    def effect(iterator: Generator) -> Generator:
         coords = list(iterator)
         length = len(coords)
 
@@ -135,4 +138,5 @@ def glitch_swap_effect(probability: float) -> EffectRecipe:
                 swap_index = random.randint(0, length - 1)
                 coords[i], coords[swap_index] = coords[swap_index], coords[i]
         yield from coords
+
     return effect

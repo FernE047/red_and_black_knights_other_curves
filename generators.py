@@ -1,63 +1,20 @@
-from enum import Enum
-from typing import Callable, Iterator
-from gilbert_curve import gilbert_d2xy  # type: ignore
+from typing import Callable
+from gilbert_curve import gilbert_xy_generator
 import random
-
-
-class ChoiceOptions(Enum):
-    SIMPLE = 0
-    SPIRAL = 1
-    SPIRAL_2 = 2
-    SPIRAL_3 = 3
-    SNAKE = 4
-    SPIRAL_DIAGONAL = 5
-    SPIRAL_DIAGONAL_2 = 6
-    GILBERT_CURVE = 7
-    MID_GILBERT_CURVE = 8
-    RANDOM = 9
-    RANDOM_ROWS = 10
-    CHECKERBOARD = 11
-    CENTER_OUT_ROWS = 12
-    DIAGONAL_SWEEP = 13
-
-
-class Direction(Enum):
-    UP = 0
-    UPRIGHT = 1
-    RIGHT = 2
-    DOWNRIGHT = 3
-    DOWN = 4
-    DOWNLEFT = 5
-    LEFT = 6
-    UPLEFT = 7
-
-
-DIRECTION_OFFSETS = {
-    Direction.UP: (-1, 0),
-    Direction.UPRIGHT: (-1, 1),
-    Direction.RIGHT: (0, 1),
-    Direction.DOWNRIGHT: (1, 1),
-    Direction.DOWN: (1, 0),
-    Direction.DOWNLEFT: (1, -1),
-    Direction.LEFT: (0, -1),
-    Direction.UPLEFT: (-1, -1),
-}
-ORTHOGONAL_DIRECTIONS = (Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT)
-DIAGONAL_DIRECTIONS = (
-    Direction.UPRIGHT,
-    Direction.DOWNRIGHT,
-    Direction.DOWNLEFT,
-    Direction.UPLEFT,
+from models import (
+    DIAGONAL_DIRECTIONS,
+    ORTHOGONAL_DIRECTIONS,
+    CoordData,
+    Direction,
+    Generator,
 )
 
-CoordData = tuple[int, int]
-GeneratorRecipe = Callable[[int, int], Iterator[CoordData]]
+GeneratorRecipe = Callable[[int, int], Generator]
 
 
 def apply_direction(coord: CoordData, direction: Direction) -> CoordData:
     y, x = coord
-    offsets = DIRECTION_OFFSETS[direction]
-    return (y + offsets[0], x + offsets[1])
+    return (y + direction.value[0], x + direction.value[1])
 
 
 def is_inside(y: int, x: int, height: int, width: int) -> bool:
@@ -65,7 +22,7 @@ def is_inside(y: int, x: int, height: int, width: int) -> bool:
 
 
 def simple() -> GeneratorRecipe:
-    def generator(height: int, width: int) -> Iterator[CoordData]:
+    def generator(height: int, width: int) -> Generator:
         for y in range(height):
             for x in range(width):
                 yield (y, x)
@@ -74,7 +31,7 @@ def simple() -> GeneratorRecipe:
 
 
 def spiral(initial_coord: CoordData) -> GeneratorRecipe:
-    def generator(height: int, width: int) -> Iterator[CoordData]:
+    def generator(height: int, width: int) -> Generator:
         is_finished = False
         coord = initial_coord
         yield coord
@@ -89,11 +46,19 @@ def spiral(initial_coord: CoordData) -> GeneratorRecipe:
                         yield coord
                 if direction in [Direction.RIGHT, Direction.LEFT]:
                     movement += 1
+
     return generator
 
 
 def snake() -> GeneratorRecipe:
-    def generator(height: int, width: int) -> Iterator[CoordData]:
+    snake_sequence = (
+        Direction.RIGHT,
+        Direction.UP,
+        Direction.DOWN,
+        Direction.LEFT,
+    )
+
+    def generator(height: int, width: int) -> Generator:
         is_finished = False
         coord = (0, 0)
         yield coord
@@ -103,12 +68,7 @@ def snake() -> GeneratorRecipe:
             return
         while not is_finished:
             is_finished = True
-            for direction in (
-                Direction.RIGHT,
-                Direction.UP,
-                Direction.DOWN,
-                Direction.LEFT,
-            ):
+            for direction in snake_sequence:
                 for _ in range(movement):
                     coord = apply_direction(coord, direction)
                     if is_inside(coord[0], coord[1], height, width):
@@ -126,11 +86,12 @@ def snake() -> GeneratorRecipe:
                         is_finished = False
                         yield coord
                     movement += 1
+
     return generator
 
 
 def spiral_diagonal(initial_coord: CoordData) -> GeneratorRecipe:
-    def generator(height: int, width: int) -> Iterator[CoordData]:
+    def generator(height: int, width: int) -> Generator:
         is_finished = False
         coord = initial_coord
         yield coord
@@ -145,43 +106,47 @@ def spiral_diagonal(initial_coord: CoordData) -> GeneratorRecipe:
                         is_finished = False
                         yield coord
             movement += 1
+
     return generator
 
 
 def gilbert() -> GeneratorRecipe:
-    #just a wrapper LMAO
-    def generator(height: int, width: int) -> Iterator[CoordData]:
-        for i in range(height * width):
-            coord = gilbert_d2xy(i, height, width)
-            yield coord
+    # just a wrapper LMAO
+    def generator(height: int, width: int) -> Generator:
+        yield from gilbert_xy_generator(height, width)
+
     return generator
 
 
 def random_generator() -> GeneratorRecipe:
-    def generator(height: int, width: int) -> Iterator[CoordData]:
+    def generator(height: int, width: int) -> Generator:
         coords = [(y, x) for y in range(height) for x in range(width)]
         random.shuffle(coords)
         for coord in coords:
             yield coord
+
     return generator
 
 
 def random_rows() -> GeneratorRecipe:
-    def generator(height: int, width: int) -> Iterator[CoordData]:
+    def generator(height: int, width: int) -> Generator:
         rows = list(range(height))
         random.shuffle(rows)
         for y in rows:
             for x in range(width):
                 yield (y, x)
+
     return generator
+
 
 def center_out_spiral() -> GeneratorRecipe:
     """Gera coordenadas do centro para as bordas em uma espiral anti-horária contínua."""
     import math
 
-    def generator(height: int, width: int) -> Iterator[CoordData]:
+    def generator(height: int, width: int) -> Generator:
         center_y, center_x = height // 2, width // 2
         coords = [(y, x) for y in range(height) for x in range(width)]
+
         def get_spiral_weight(coord: CoordData) -> float:
             y, x = coord
             dy = y - center_y
@@ -189,26 +154,26 @@ def center_out_spiral() -> GeneratorRecipe:
             distance_sq = dy**2 + dx**2
             angle = math.atan2(dy, dx) + math.pi
             return (distance_sq * 10) + angle
+
         coords.sort(key=get_spiral_weight)
         for coord in coords:
             yield coord
 
     return generator
 
+
 def perlin_noise_flow(scale: float = 0.1) -> GeneratorRecipe:
     import math
-    def generator(height: int, width: int) -> Iterator[CoordData]:
+
+    def generator(height: int, width: int) -> Generator:
         coords = [(y, x) for y in range(height) for x in range(width)]
+
         def get_density(y: int, x: int) -> float:
             val = math.sin(y * scale) + math.cos(x * scale) + math.sin((y + x) * scale)
             return val
+
         coords.sort(key=lambda c: get_density(c[0], c[1]))
         for coord in coords:
             yield coord
-    return generator
 
-def safe_next(iterator: Iterator[CoordData]) -> CoordData | None:
-    try:
-        return next(iterator)
-    except StopIteration as _:
-        return None
+    return generator

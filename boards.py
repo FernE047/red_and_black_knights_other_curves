@@ -1,7 +1,8 @@
 from pathlib import Path
+from models import CoordData, Generator
 from pieces import Piece
 from typing import TYPE_CHECKING
-from generators import GeneratorRecipe, safe_next
+from generators import GeneratorRecipe
 
 if TYPE_CHECKING:
     from PIL import Image
@@ -20,7 +21,12 @@ TEAM_COLORS = [
     (255, 128, 0, 255),
 ]
 
-CoordData = tuple[int, int]
+
+def safe_next(iterator: Generator) -> CoordData | None:
+    try:
+        return next(iterator)
+    except StopIteration as _:
+        return None
 
 
 class Board:
