@@ -9,13 +9,13 @@ HEIGHT = 1000
 
 def main() -> None:
     generator_builder = effects.apply_effects(
-        generators.spiral((HEIGHT // 2, WIDTH // 2)),
-        effects.normal_effect(),
+        generators.gilbert(),
+        effects.center_out_effect(),
     )
     board = Board(
         HEIGHT,
         WIDTH,
-        [pieces.Knight(1), pieces.Sea_Star(2,4)],
+        [pieces.Knight(1), pieces.Knight(2)],
         generator_builder,
     )
     board.solve()
