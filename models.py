@@ -15,6 +15,25 @@ class Direction(Enum):
     UPLEFT = (-1, -1)
 
 
+class Rotation(Enum):
+    ONCE = 90
+    TWICE = 180
+    THRICE = 270
+
+
+class Reflection(Enum):
+    VERTICAL = 0
+    HORIZONTAL = 1
+    MAIN_DIAGONAL = 2
+    ANTI_DIAGONAL = 3
+
+class Action(Enum):
+    PASTE = 0
+    APPLY_FUNCTION = 1
+
+Command = Direction|Rotation|Reflection|Action
+Procedure = list[Command]
+PathData = list[Direction]
 ORTHOGONAL_DIRECTIONS = (Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT)
 DIAGONAL_DIRECTIONS = (
     Direction.UPRIGHT,
