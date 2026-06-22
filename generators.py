@@ -1,5 +1,6 @@
 from typing import Callable
 from gilbert_curve import gilbert_xy_generator
+from PIL import Image
 import random
 from models import (
     DIAGONAL_DIRECTIONS,
@@ -111,7 +112,7 @@ def spiral_diagonal(initial_coord: CoordData) -> GeneratorRecipe:
 
 
 def gilbert() -> GeneratorRecipe:
-    # just a wrapper LMAO
+
     def generator(height: int, width: int) -> Generator:
         yield from gilbert_xy_generator(height, width)
 
@@ -175,5 +176,45 @@ def perlin_noise_flow(scale: float = 0.1) -> GeneratorRecipe:
         coords.sort(key=lambda c: get_density(c[0], c[1]))
         for coord in coords:
             yield coord
+
+    return generator
+
+
+def image_based(image_path: str) -> GeneratorRecipe:
+    image = Image.open(image_path)
+    from collections import deque
+
+    def generator(height: int, width: int) -> Generator:
+        img_gray = image.convert("L").resize((width, height))
+        pixels = img_gray.load()
+        assert pixels is not None, "Failed to load image pixels."
+        coords_with_vals: list[tuple[int, int, int]] = []
+        for y in range(height):
+            for x in range(width):
+                val = pixels[x, y]
+                assert isinstance(val, int)
+                coords_with_vals.append((y, x, val))
+        sorted_by_val = sorted(coords_with_vals, key=lambda item: item[2])
+        mid_index = len(sorted_by_val) // 2
+        dark_set = set((y, x) for y, x, _ in sorted_by_val[:mid_index])
+        dark_group: deque[tuple[int, int]] = deque()
+        light_group: list[tuple[int, int]] = []
+        for y in range(height):
+            for x in range(width):
+                if (y, x) in dark_set:
+                    dark_group.append((y, x))
+                else:
+                    light_group.append((y, x))
+        dark_turn = True
+        while dark_group or light_group:
+            if dark_turn and dark_group:
+                yield dark_group.popleft()
+            elif not dark_turn and light_group:
+                yield light_group.pop()
+            elif dark_turn and not dark_group:
+                yield light_group.pop()
+            elif not dark_turn and not light_group:
+                yield dark_group.popleft()
+            dark_turn = not dark_turn
 
     return generator
