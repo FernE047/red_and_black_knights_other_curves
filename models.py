@@ -29,7 +29,6 @@ class Reflection(Enum):
 
 class Action(Enum):
     PASTE = 0
-    APPLY_FUNCTION = 1
 
 Command = Direction|Rotation|Reflection|Action
 Procedure = list[Command]
