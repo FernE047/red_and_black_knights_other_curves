@@ -1,8 +1,7 @@
 from boards import Board
 import effects
-from fractal_tilling import Fractal
+from fractal_tilling import hilbert_like
 # import generators
-from models import Action, Direction, Rotation
 import pieces
 
 # WIDTH = 1440
@@ -10,11 +9,11 @@ import pieces
 
 
 def main() -> None:
-    fractal = Fractal([Direction.RIGHT], [Action.PASTE, Rotation.ONCE, Action.PASTE])
-    for level in range(20):
+    fractal = hilbert_like(0)
+    for level in range(8):
         generator_builder = effects.apply_effects(
             fractal.build_generator(level),
-            effects.normal_effect(),
+            effects.center_out_effect(),
         )
         size, _ = fractal.get_info(level)
         board = Board(

@@ -18,9 +18,15 @@ DOWNLEFT = Direction.DOWNLEFT
 LEFT = Direction.LEFT
 UPLEFT = Direction.UPLEFT
 PASTE = Action.PASTE
+RONCE = Rotation.ONCE
+RWICE = Rotation.TWICE
+RHICE = Rotation.THRICE
+REVERSE = Action.REVERSE
+HORIZONTAL = Reflection.HORIZONTAL
+VERTICAL = Reflection.VERTICAL
 
 ROTATIONS_DICT = {
-    Rotation.ONCE: {
+    RONCE: {
         UP: RIGHT,
         UPRIGHT: DOWNRIGHT,
         RIGHT: DOWN,
@@ -30,7 +36,7 @@ ROTATIONS_DICT = {
         LEFT: UP,
         UPLEFT: UPRIGHT,
     },
-    Rotation.TWICE: {
+    RWICE: {
         UP: DOWN,
         UPRIGHT: DOWNLEFT,
         RIGHT: LEFT,
@@ -40,7 +46,7 @@ ROTATIONS_DICT = {
         LEFT: RIGHT,
         UPLEFT: DOWNRIGHT,
     },
-    Rotation.THRICE: {
+    RHICE: {
         UP: LEFT,
         UPRIGHT: UPLEFT,
         RIGHT: UP,
@@ -52,7 +58,7 @@ ROTATIONS_DICT = {
     },
 }
 REFLECTIONS_DICT = {
-    Reflection.VERTICAL: {
+    VERTICAL: {
         UP: DOWN,
         UPRIGHT: DOWNRIGHT,
         RIGHT: RIGHT,
@@ -62,7 +68,7 @@ REFLECTIONS_DICT = {
         LEFT: LEFT,
         UPLEFT: DOWNLEFT,
     },
-    Reflection.HORIZONTAL: {
+    HORIZONTAL: {
         UP: UP,
         UPRIGHT: UPLEFT,
         RIGHT: LEFT,
@@ -180,6 +186,11 @@ class Fractal:
         min_y, max_y, min_x, max_x = self.get_boundaries(level)
         width = abs(min_x - max_x) + 1
         height = abs(min_y - max_y) + 1
+        if height * width >= 2500 * 2500:
+            raise ValueError(
+                f"Oops! O fractal ficou gigante demais, amada ({height}x{width}). "
+                "Tamanho máximo permitido é 2500x2500! 🛑🎀"
+            )
         start_y = 0
         start_x = 0
         if min_x < 0:
@@ -229,7 +240,7 @@ def wilbert_curve() -> Fractal:
 
 
 def dragon_curve() -> Fractal:
-    return Fractal([RIGHT], [PASTE, Action.REVERSE, Rotation.ONCE, PASTE])
+    return Fractal([RIGHT], [PASTE, REVERSE, RONCE, PASTE])
 
 
 def custom_peano(starting_block: PathData) -> Fractal:
@@ -238,23 +249,24 @@ def custom_peano(starting_block: PathData) -> Fractal:
         [
             PASTE,
             DOWN,
-            Reflection.HORIZONTAL,
+            HORIZONTAL,
             PASTE,
             DOWN,
             PASTE,
             RIGHT,
-            Reflection.VERTICAL,
+            VERTICAL,
             PASTE,
             UP,
-            Reflection.MAIN_DIAGONAL,
+            VERTICAL,
+            HORIZONTAL,
             PASTE,
             UP,
-            Reflection.VERTICAL,
+            VERTICAL,
             PASTE,
             RIGHT,
             PASTE,
             DOWN,
-            Reflection.HORIZONTAL,
+            HORIZONTAL,
             PASTE,
             DOWN,
             PASTE,
@@ -282,12 +294,59 @@ def simpler_peano() -> Fractal:
 
 
 def minkowski_curve() -> Fractal:
-    return Fractal([RIGHT], [
-        PASTE,
-        Rotation.THRICE,
-        PASTE,
-        PASTE,
-        Rotation.ONCE,
-        PASTE,
-        PASTE
-    ])
+    return Fractal([RIGHT], [PASTE, RHICE, PASTE, PASTE, RONCE, PASTE, PASTE])
+
+
+def hilbert_like(variation: int) -> Fractal:
+    if variation == 1:
+        return Fractal(
+            [
+                RIGHT,
+                RIGHT,
+                DOWN,
+                LEFT,
+                LEFT,
+                DOWN,
+                DOWN,
+                RIGHT,
+                UP,
+                RIGHT,
+                DOWN,
+                RIGHT,
+                UP,
+                UP,
+                UP,
+            ],
+            [],
+        )
+    return Fractal(
+        [RIGHT, DOWN, LEFT, DOWN, RIGHT, RIGHT, UP, UP],
+        [
+            PASTE,
+            RIGHT,
+            RONCE,
+            HORIZONTAL,
+            PASTE,
+            DOWN,
+            RONCE,
+            HORIZONTAL,
+            PASTE,
+            LEFT,
+            RWICE,
+            PASTE,
+            DOWN,
+            PASTE,
+            RIGHT,
+            PASTE,
+            RIGHT,
+            PASTE,
+            UP,
+            RONCE,
+            VERTICAL,
+            PASTE,
+            UP,
+            RONCE,
+            VERTICAL,
+            PASTE,
+        ],
+    )
