@@ -1,26 +1,29 @@
 from boards import Board
 import effects
-import generators
+from fractal_tilling import Fractal
+# import generators
+from models import Action, Direction, Rotation
 import pieces
 
-WIDTH = 1440
-HEIGHT = 1920
+# WIDTH = 1440
+# HEIGHT = 1920
 
 
 def main() -> None:
-    generator_builder = effects.apply_effects(
-        generators.image_based(
-            "C:\\Users\\Vallen\\Downloads\\722956455_18097342463520866_1968801134722390899_n.jpg"
-        ),
-        effects.normal_effect(),
-    )
-    board = Board(
-        HEIGHT,
-        WIDTH,
-        [pieces.Knight(1), pieces.Knight(2)],
-        generator_builder,
-    )
-    board.solve()
+    fractal = Fractal([Direction.RIGHT], [Action.PASTE, Rotation.ONCE, Action.PASTE])
+    for level in range(20):
+        generator_builder = effects.apply_effects(
+            fractal.build_generator(level),
+            effects.normal_effect(),
+        )
+        size, _ = fractal.get_info(level)
+        board = Board(
+            size[0],
+            size[1],
+            [pieces.Knight(1), pieces.Knight(2)],
+            generator_builder,
+        )
+        board.solve()
 
 
 if __name__ == "__main__":

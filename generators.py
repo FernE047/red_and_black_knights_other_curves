@@ -1,4 +1,3 @@
-from typing import Callable
 from gilbert_curve import gilbert_xy_generator
 from PIL import Image
 import random
@@ -8,9 +7,8 @@ from models import (
     CoordData,
     Direction,
     Generator,
+    GeneratorRecipe,
 )
-
-GeneratorRecipe = Callable[[int, int], Generator]
 
 
 def apply_direction(coord: CoordData, direction: Direction) -> CoordData:

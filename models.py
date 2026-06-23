@@ -1,8 +1,9 @@
 from enum import Enum
-from typing import Iterator
+from typing import Callable, Iterator
 
 
 CoordData = tuple[int, int]
+
 
 class Direction(Enum):
     UP = (-1, 0)
@@ -27,10 +28,13 @@ class Reflection(Enum):
     MAIN_DIAGONAL = 2
     ANTI_DIAGONAL = 3
 
+
 class Action(Enum):
     PASTE = 0
+    REVERSE = 1
 
-Command = Direction|Rotation|Reflection|Action
+
+Command = Direction | Rotation | Reflection | Action
 Procedure = list[Command]
 PathData = list[Direction]
 ORTHOGONAL_DIRECTIONS = (Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT)
@@ -41,3 +45,4 @@ DIAGONAL_DIRECTIONS = (
     Direction.UPLEFT,
 )
 Generator = Iterator[CoordData]
+GeneratorRecipe = Callable[[int, int], Generator]
