@@ -133,9 +133,39 @@ def reverse_path(path_input: PathData) -> PathData:
         new_path.append(REVERSE_DICT[direction])
     return new_path
 
+translation_dict: dict[str,Direction|Rotation|Reflection|Action] = {
+    "d0":UP,
+    "d1":UPRIGHT,
+    "d2":RIGHT,
+    "d3":DOWNRIGHT,
+    "d4":DOWN,
+    "d5":DOWNLEFT,
+    "d6":LEFT,
+    "d7":UPLEFT,
+    "r1":RONCE,
+    "r2":RWICE,
+    "r3":RHICE,
+    "r4":HORIZONTAL,
+    "r5":VERTICAL,
+    "r6":Reflection.MAIN_DIAGONAL,
+    "r7":Reflection.ANTI_DIAGONAL,
+    "pp":PASTE,
+    "rr":REVERSE
+}
+
+
+def translate_procedure(procedure: str) -> Procedure:
+    new_procedure: Procedure = []
+    for index in range(len(procedure) // 2):
+        segment = procedure[2 * index : 2 * index + 1].lower()
+        new_procedure.append(translation_dict[segment])
+    return new_procedure
+
 
 class Fractal:
-    def __init__(self, building_block: PathData, procedure: Procedure) -> None:
+    def __init__(self, building_block: PathData, procedure: Procedure|str) -> None:
+        if isinstance(procedure,str):
+            procedure = translate_procedure(procedure)
         self.procedure = procedure
         self.levels = [building_block]
 
@@ -317,7 +347,57 @@ def hilbert_like(variation: int) -> Fractal:
                 UP,
                 UP,
             ],
-            [],
+            [
+                PASTE,
+                RIGHT,
+                PASTE,
+                RIGHT,
+                RONCE,
+                HORIZONTAL,
+                PASTE,
+                DOWN,
+                RONCE,
+                HORIZONTAL,
+                PASTE,
+                LEFT,
+                RWICE,
+                PASTE,
+                LEFT,
+                RWICE,
+                PASTE,
+                DOWN,
+                RONCE,
+                HORIZONTAL,
+                PASTE,
+                DOWN,
+                PASTE,
+                RIGHT,
+                PASTE,
+                UP,
+                RONCE,
+                VERTICAL,
+                PASTE,
+                RIGHT,
+                RONCE,
+                HORIZONTAL,
+                PASTE,
+                DOWN,
+                PASTE,
+                RIGHT,
+                PASTE,
+                UP,
+                RONCE,
+                VERTICAL,
+                PASTE,
+                UP,
+                RONCE,
+                VERTICAL,
+                PASTE,
+                UP,
+                RONCE,
+                VERTICAL,
+                PASTE,
+            ],
         )
     return Fractal(
         [RIGHT, DOWN, LEFT, DOWN, RIGHT, RIGHT, UP, UP],
