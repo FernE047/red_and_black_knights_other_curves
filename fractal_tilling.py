@@ -133,40 +133,51 @@ def reverse_path(path_input: PathData) -> PathData:
         new_path.append(REVERSE_DICT[direction])
     return new_path
 
-translation_dict: dict[str,Direction|Rotation|Reflection|Action] = {
-    "d0":UP,
-    "d1":UPRIGHT,
-    "d2":RIGHT,
-    "d3":DOWNRIGHT,
-    "d4":DOWN,
-    "d5":DOWNLEFT,
-    "d6":LEFT,
-    "d7":UPLEFT,
-    "r1":RONCE,
-    "r2":RWICE,
-    "r3":RHICE,
-    "r4":HORIZONTAL,
-    "r5":VERTICAL,
-    "r6":Reflection.MAIN_DIAGONAL,
-    "r7":Reflection.ANTI_DIAGONAL,
-    "pp":PASTE,
-    "rr":REVERSE
+
+translation_dict: dict[str, Direction | Rotation | Reflection | Action] = {
+    "uu": UP,
+    "ur": UPRIGHT,
+    "rr": RIGHT,
+    "dr": DOWNRIGHT,
+    "dd": DOWN,
+    "dl": DOWNLEFT,
+    "ll": LEFT,
+    "ul": UPLEFT,
+    "r1": RONCE,
+    "r2": RWICE,
+    "r3": RHICE,
+    "mh": HORIZONTAL,
+    "mv": VERTICAL,
+    "mm": Reflection.MAIN_DIAGONAL,
+    "ma": Reflection.ANTI_DIAGONAL,
+    "pp": PASTE,
+    "rv": REVERSE,
 }
+
+
+def translate_path(path: str) -> PathData:
+    new_path: PathData = []
+    for segment in path.lower().split(","):
+        new_path.append(translation_dict[segment])  # type:ignore
+    return new_path
 
 
 def translate_procedure(procedure: str) -> Procedure:
     new_procedure: Procedure = []
-    for index in range(len(procedure) // 2):
-        segment = procedure[2 * index : 2 * index + 1].lower()
+    for segment in procedure.lower().split(","):
         new_procedure.append(translation_dict[segment])
     return new_procedure
 
 
 class Fractal:
-    def __init__(self, building_block: PathData, procedure: Procedure|str) -> None:
-        if isinstance(procedure,str):
+    def __init__(
+        self, building_block: PathData | str, procedure: Procedure | str
+    ) -> None:
+        if isinstance(procedure, str):
             procedure = translate_procedure(procedure)
         self.procedure = procedure
+        if isinstance(building_block, str):
+            building_block = translate_path(building_block)
         self.levels = [building_block]
 
     def build_level(self, level: int) -> None:
@@ -245,188 +256,49 @@ class Fractal:
 
 
 def custom_hilbert(starting_block: PathData) -> Fractal:
-    return Fractal(
-        starting_block,
-        [
-            Reflection.ANTI_DIAGONAL,
-            PASTE,
-            DOWN,
-            PASTE,
-            RIGHT,
-            PASTE,
-            UP,
-            Reflection.MAIN_DIAGONAL,
-            PASTE,
-        ],
-    )
+    return Fractal(starting_block, "MA,PP,DD,PP,RR,PP,UU,MM,PP")
 
 
 def hilbert_curve() -> Fractal:
-    return custom_hilbert([DOWN, RIGHT, UP])
+    return custom_hilbert([DOWN, RIGHT, UP])  # "DD,RR,UU"
 
 
 def wilbert_curve() -> Fractal:
-    return custom_hilbert([DOWNRIGHT, LEFT, UPRIGHT])
+    return custom_hilbert([DOWNRIGHT, LEFT, UPRIGHT])  # "DR,LL,UR"
 
 
 def dragon_curve() -> Fractal:
-    return Fractal([RIGHT], [PASTE, REVERSE, RONCE, PASTE])
+    return Fractal([RIGHT], [PASTE, REVERSE, RONCE, PASTE])  # "RR", "PP,RV,R1,PP"
 
 
-def custom_peano(starting_block: PathData) -> Fractal:
+def custom_peano(starting_block: PathData | str) -> Fractal:
     return Fractal(
         starting_block,
-        [
-            PASTE,
-            DOWN,
-            HORIZONTAL,
-            PASTE,
-            DOWN,
-            PASTE,
-            RIGHT,
-            VERTICAL,
-            PASTE,
-            UP,
-            VERTICAL,
-            HORIZONTAL,
-            PASTE,
-            UP,
-            VERTICAL,
-            PASTE,
-            RIGHT,
-            PASTE,
-            DOWN,
-            HORIZONTAL,
-            PASTE,
-            DOWN,
-            PASTE,
-        ],
+        "PP,DD,MH,PP,DD,PP,RR,MV,PP,UU,MV,MH,PP,UU,MV,PP,RR,PP,DD,MH,PP,DD,PP",
     )
 
 
 def peano_curve() -> Fractal:
-    return custom_peano(
-        [
-            DOWN,
-            DOWN,
-            RIGHT,
-            UP,
-            UP,
-            RIGHT,
-            DOWN,
-            DOWN,
-        ]
-    )
+    return custom_peano("DD,DD,RR,UU,UU,RR,DD,DD")
 
 
 def simpler_peano() -> Fractal:
-    return custom_peano([DOWN, UPRIGHT, DOWN])
+    return custom_peano([DOWN, UPRIGHT, DOWN])  # "DD,UR,DD"
 
 
 def minkowski_curve() -> Fractal:
-    return Fractal([RIGHT], [PASTE, RHICE, PASTE, PASTE, RONCE, PASTE, PASTE])
+    return Fractal(
+        [RIGHT], [PASTE, RHICE, PASTE, PASTE, RONCE, PASTE, PASTE]
+    )  # "RR", "PP,R2,PP,PP,R1,PP,PP"
 
 
 def hilbert_like(variation: int) -> Fractal:
     if variation == 1:
         return Fractal(
-            [
-                RIGHT,
-                RIGHT,
-                DOWN,
-                LEFT,
-                LEFT,
-                DOWN,
-                DOWN,
-                RIGHT,
-                UP,
-                RIGHT,
-                DOWN,
-                RIGHT,
-                UP,
-                UP,
-                UP,
-            ],
-            [
-                PASTE,
-                RIGHT,
-                PASTE,
-                RIGHT,
-                RONCE,
-                HORIZONTAL,
-                PASTE,
-                DOWN,
-                RONCE,
-                HORIZONTAL,
-                PASTE,
-                LEFT,
-                RWICE,
-                PASTE,
-                LEFT,
-                RWICE,
-                PASTE,
-                DOWN,
-                RONCE,
-                HORIZONTAL,
-                PASTE,
-                DOWN,
-                PASTE,
-                RIGHT,
-                PASTE,
-                UP,
-                RONCE,
-                VERTICAL,
-                PASTE,
-                RIGHT,
-                RONCE,
-                HORIZONTAL,
-                PASTE,
-                DOWN,
-                PASTE,
-                RIGHT,
-                PASTE,
-                UP,
-                RONCE,
-                VERTICAL,
-                PASTE,
-                UP,
-                RONCE,
-                VERTICAL,
-                PASTE,
-                UP,
-                RONCE,
-                VERTICAL,
-                PASTE,
-            ],
+            "RR,RR,DD,LL,LL,DD,DD,RR,UU,RR,DD,RR,UU,UU,UU",
+            "PP,RR,PP,RR,R1,MH,PP,DD,R1,MH,PP,LL,R2,PP,LL,R2,PP,DD,R1,MH,PP,DD,PP,RR,PP,UU,R1,MV,PP,RR,R1,MH,PP,DD,PP,RR,PP,UU,R1,MV,PP,UU,R1,MV,PP,UU,R1,MV,PP",
         )
     return Fractal(
-        [RIGHT, DOWN, LEFT, DOWN, RIGHT, RIGHT, UP, UP],
-        [
-            PASTE,
-            RIGHT,
-            RONCE,
-            HORIZONTAL,
-            PASTE,
-            DOWN,
-            RONCE,
-            HORIZONTAL,
-            PASTE,
-            LEFT,
-            RWICE,
-            PASTE,
-            DOWN,
-            PASTE,
-            RIGHT,
-            PASTE,
-            RIGHT,
-            PASTE,
-            UP,
-            RONCE,
-            VERTICAL,
-            PASTE,
-            UP,
-            RONCE,
-            VERTICAL,
-            PASTE,
-        ],
+        "RR,DD,LL,DD,RR,RR,UU,UU",
+        "PP,RR,R1,MH,PP,DD,R1,MH,PP,LL,R2,PP,DD,PP,RR,PP,RR,PP,UU,R1,MV,PP,UU,R1,MV,PP",
     )

@@ -13,7 +13,7 @@ def main() -> None:
     for level in range(8):
         generator_builder = effects.apply_effects(
             fractal.build_generator(level),
-            effects.normal_effect(),
+            effects.center_out_effect(),
         )
         size, _ = fractal.get_info(level)
         board = Board(
