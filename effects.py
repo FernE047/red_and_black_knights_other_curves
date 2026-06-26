@@ -92,13 +92,13 @@ def section_effect(section_size: int) -> EffectRecipe:
 
 def gravity_effect() -> EffectRecipe:
     def effect(iterator: Generator) -> Generator:
-        y_coords: dict[int, int] = {}
+        y_coords: dict[int, set[int]] = {}
         for coord in iterator:
-            _, x = coord
+            y, x = coord
             if x not in y_coords:
-                y_coords[x] = 0
-            yield (y_coords[x], x)
-            y_coords[x] += 1
+                y_coords[x] = set()
+            yield (len(y_coords[x]), x)
+            y_coords[x].add(y)
 
     return effect
 
