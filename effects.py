@@ -78,13 +78,15 @@ def section_effect(section_size: int) -> EffectRecipe:
             if len(current_section) == section_size:
                 sections.append(current_section)
                 current_section = []
+        if not sections:
+            yield from current_section
+            return
         if sections[-1] != current_section:
             sections.append(current_section)
         for index in range(section_size):
             for section in sections:
                 if index < len(section):
                     yield section[index]
-
     return effect
 
 
@@ -113,6 +115,9 @@ def center_out_effect() -> EffectRecipe:
                 yield cache[center + offset]
             except IndexError:
                 pass
+            if offset == 0:
+                offset += 1
+                continue
             try:
                 yield cache[center - offset]
             except IndexError:
