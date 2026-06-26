@@ -1,3 +1,4 @@
+import random
 from models import (
     Action,
     Direction,
@@ -228,7 +229,10 @@ class Fractal:
         min_y, max_y, min_x, max_x = self.get_boundaries(level)
         width = abs(min_x - max_x) + 1
         height = abs(min_y - max_y) + 1
-        if height * width >= SIZE_LIMIT * SIZE_LIMIT:
+        if (
+            height * width >= SIZE_LIMIT * SIZE_LIMIT
+            or max((height, width)) > 2 * SIZE_LIMIT
+        ):
             raise ValueError(
                 f"Oops! O fractal ficou gigante demais, amada ({height}x{width}). "
                 f"Tamanho máximo permitido é {SIZE_LIMIT}X{SIZE_LIMIT}! 🛑🎀"
@@ -349,4 +353,86 @@ def hilbert_like(variation: int) -> Fractal:
         return hilbert_self_replicator("DD,RR,UU,RR,DD,DD,LL,LL,DD,RR,RR,RR,UU,UU,UU")
     if variation == 4:
         return hilbert_self_replicator("RR,RR,DD,DD,LL,UU,LL,DD,DD,RR,RR,RR,UU,UU,UU")
-    return hilbert_self_replicator("RR,DD,LL,DD,RR,RR,UU,UU") 
+    return hilbert_self_replicator("RR,DD,LL,DD,RR,RR,UU,UU")
+
+INVALID_PAIRS = {
+    ("uu", "dd"),
+    ("dd", "uu"),
+    ("rr", "ll"),
+    ("ll", "rr"),
+    ("ur", "dl"),
+    ("dl", "ur"),
+    ("ul", "dr"),
+    ("dr", "ul"),
+    ("r1", "r3"),
+    ("r3", "r1"),
+    ("r2", "r2"),
+    ("mh", "mh"),
+    ("mv", "mv"),
+    ("rv", "rv"),
+}
+
+
+def get_inverse(item: str) -> str | None:
+    """Retorna a operação inversa/anuladora de um item, se existir."""
+    for pair in INVALID_PAIRS:
+        if pair[0] == item and pair[0] != pair[1]:  # Para pares distintos
+            return pair[1]
+        elif pair[0] == item and pair[0] == pair[1]:  # Para pares iguais (ex: r2)
+            return item
+    return None
+
+
+def get_valid_sequence(pool: list[str], length: int) -> list[str]:
+    sequence: list[str] = []
+    current_block: list[str] = []
+
+    for _ in range(length - 1):
+        available_pool = set(pool)
+        for existing_item in current_block:
+            invalid_item = get_inverse(existing_item)
+            if invalid_item and invalid_item in available_pool:
+                available_pool.remove(invalid_item)
+        if not available_pool:
+            available_pool = set(pool)
+        next_item = random.choice(list(available_pool))
+        if next_item == "pp":
+            current_block.clear()
+        else:
+            current_block.append(next_item)
+        sequence.append(next_item)
+    if "pp" in pool:
+        sequence.append("pp")
+    else:
+        sequence.append(random.choice(pool))
+    return sequence
+
+
+procedure_keys = [
+    "uu",
+    "ur",
+    "rr",
+    "dr",
+    "dd",
+    "dl",
+    "ll",
+    "ul",
+    "r1",
+    "r2",
+    "r3",
+    "mh",
+    "mv",
+    "pp",
+    "rv",
+]
+path_keys = ["uu", "ur", "rr", "dr", "dd", "dl", "ll", "ul"]
+
+
+def create_random_fractal(procedure_length: int, path_length: int) -> "Fractal":
+    random_procedure = get_valid_sequence(procedure_keys, procedure_length)
+    random_path = [random.choice(path_keys) for _ in range(path_length)]
+    procedure_str = ",".join(random_procedure)
+    building_block_str = ",".join(random_path)
+    print(procedure_str)
+    print(building_block_str)
+    return Fractal(building_block=building_block_str, procedure=procedure_str)
