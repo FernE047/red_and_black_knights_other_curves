@@ -221,3 +221,6 @@ def Sea_Star(team: int, variation: int = 0) -> Piece:
     elif variation == 7:
         moves = ((-2, 1), (-2, -2), (1, -2), (2, 0), (0, 2))
     return Piece(team, moves)
+
+def null_piece(team:int) -> Piece:
+    return Piece(team, ())

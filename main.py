@@ -1,6 +1,6 @@
 from boards import Board
 import effects
-from fractal_tilling import hilbert_like
+from fractal_tilling import hilbert_self_replicator
 # import generators
 import pieces
 
@@ -9,12 +9,16 @@ import pieces
 
 
 def main() -> None:
-    fractal = hilbert_like(2)
+    fractal = hilbert_self_replicator(
+        "dr,dd,dr,rr,ll,ul,uu,ur,rr,rr,"
+        "dr,dd,dr,rr,ur,uu,ul,ll,rr,dr,ur,"
+        "dr,dd,dr,ur,uu,uu,dd,dd,dr,ur,uu,ur,"
+        "rr,dr,dd,uu,ur,rr,dr,dr,dd,dd,dd,dl,ul,uu,uu,uu,ur,ur,rr,dr,dd,dr,rr,ur,uu,ul,ll,rr,dr,ur"
+    )
     for level in range(8):
         generator_builder = effects.apply_effects(
             fractal.build_generator(level),
-            effects.center_out_effect(),
-            effects.gravity_effect()
+            effects.normal_effect()
         )
         size, _ = fractal.get_info(level)
         board = Board(

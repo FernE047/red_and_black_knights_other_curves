@@ -260,7 +260,7 @@ class Fractal:
         return generator
 
 
-def custom_hilbert(starting_block: PathData) -> Fractal:
+def custom_hilbert(starting_block: PathData|str) -> Fractal:
     return Fractal(starting_block, "MA,PP,DD,PP,RR,PP,UU,MM,PP")
 
 
@@ -298,7 +298,24 @@ def minkowski_curve() -> Fractal:
 
 
 def hilbert_self_replicator(building_block: PathData | str) -> Fractal:
-    path = translate_path(building_block)
+    before_path = translate_path(building_block)
+    path: PathData = []
+    for direction in before_path:
+        if direction in (RIGHT,DOWN,LEFT,UP):
+            path.append(direction)
+            continue
+        if direction == UPRIGHT:
+            path.extend([UP,RIGHT])
+            continue
+        if direction == UPLEFT:
+            path.extend([UP, LEFT])
+            continue
+        if direction == DOWNRIGHT:
+            path.extend([DOWN, RIGHT])
+            continue
+        if direction == DOWNLEFT:
+            path.extend([DOWN, LEFT])
+            continue
     direction_procedures: dict[Direction, Procedure] = {
         RIGHT: [PASTE],
         DOWN: [RONCE, HORIZONTAL, PASTE],
