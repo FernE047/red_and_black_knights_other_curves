@@ -9,11 +9,11 @@ import pieces
 
 
 def main() -> None:
-    fractal = hilbert_like(1)
+    fractal = hilbert_like(2)
     for level in range(8):
         generator_builder = effects.apply_effects(
             fractal.build_generator(level),
-            effects.center_out_effect(),
+            effects.section_effect(256),
         )
         size, _ = fractal.get_info(level)
         board = Board(

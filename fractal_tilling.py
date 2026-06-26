@@ -9,6 +9,7 @@ from models import (
 )
 from generators import apply_direction, GeneratorRecipe
 
+SIZE_LIMIT = 2500
 UP = Direction.UP
 UPRIGHT = Direction.UPRIGHT
 RIGHT = Direction.RIGHT
@@ -155,14 +156,18 @@ translation_dict: dict[str, Direction | Rotation | Reflection | Action] = {
 }
 
 
-def translate_path(path: str) -> PathData:
+def translate_path(path: PathData | str) -> PathData:
+    if not isinstance(path, str):
+        return path
     new_path: PathData = []
     for segment in path.lower().split(","):
         new_path.append(translation_dict[segment])  # type:ignore
     return new_path
 
 
-def translate_procedure(procedure: str) -> Procedure:
+def translate_procedure(procedure: Procedure | str) -> Procedure:
+    if not isinstance(procedure, str):
+        return procedure
     new_procedure: Procedure = []
     for segment in procedure.lower().split(","):
         new_procedure.append(translation_dict[segment])
@@ -173,12 +178,8 @@ class Fractal:
     def __init__(
         self, building_block: PathData | str, procedure: Procedure | str
     ) -> None:
-        if isinstance(procedure, str):
-            procedure = translate_procedure(procedure)
-        self.procedure = procedure
-        if isinstance(building_block, str):
-            building_block = translate_path(building_block)
-        self.levels = [building_block]
+        self.procedure = translate_procedure(procedure)
+        self.levels = [translate_path(building_block)]
 
     def build_level(self, level: int) -> None:
         while len(self.levels) - 1 < level:
@@ -227,10 +228,10 @@ class Fractal:
         min_y, max_y, min_x, max_x = self.get_boundaries(level)
         width = abs(min_x - max_x) + 1
         height = abs(min_y - max_y) + 1
-        if height * width >= 2500 * 2500:
+        if height * width >= SIZE_LIMIT * SIZE_LIMIT:
             raise ValueError(
                 f"Oops! O fractal ficou gigante demais, amada ({height}x{width}). "
-                "Tamanho máximo permitido é 2500x2500! 🛑🎀"
+                f"Tamanho máximo permitido é {SIZE_LIMIT}X{SIZE_LIMIT}! 🛑🎀"
             )
         start_y = 0
         start_x = 0
@@ -292,13 +293,60 @@ def minkowski_curve() -> Fractal:
     )  # "RR", "PP,R2,PP,PP,R1,PP,PP"
 
 
+def hilbert_self_replicator(building_block: PathData | str) -> Fractal:
+    path = translate_path(building_block)
+    direction_procedures: dict[Direction, Procedure] = {
+        RIGHT: [PASTE],
+        DOWN: [RONCE, HORIZONTAL, PASTE],
+        LEFT: [RWICE, PASTE],
+        UP: [RONCE, VERTICAL, PASTE],
+    }
+    procedure: Procedure = []
+    procedure.extend(direction_procedures[path[0]])
+    for index in range(len(path) - 1):
+        current_direction = path[index]
+        next_direction = path[index + 1]
+        procedure.append(current_direction)
+        if current_direction == next_direction:
+            procedure.extend(direction_procedures[current_direction])
+            continue
+        transition = (current_direction, next_direction)
+        if transition == (RIGHT, DOWN):
+            procedure.extend(direction_procedures[DOWN])
+            continue
+        if transition == (RIGHT, UP):
+            procedure.extend(direction_procedures[RIGHT])
+            continue
+        if transition == (LEFT, DOWN):
+            procedure.extend(direction_procedures[LEFT])
+            continue
+        if transition == (LEFT, UP):
+            procedure.extend(direction_procedures[UP])
+            continue
+        if transition == (DOWN, RIGHT):
+            procedure.extend(direction_procedures[RIGHT])
+            continue
+        if transition == (DOWN, LEFT):
+            procedure.extend(direction_procedures[DOWN])
+            continue
+        if transition == (UP, RIGHT):
+            procedure.extend(direction_procedures[UP])
+            continue
+        if transition == (UP, LEFT):
+            procedure.extend(direction_procedures[LEFT])
+            continue
+    procedure.append(path[-1])
+    procedure.extend(direction_procedures[path[-1]])
+    return Fractal(path, procedure)
+
+
 def hilbert_like(variation: int) -> Fractal:
     if variation == 1:
-        return Fractal(
-            "RR,RR,DD,LL,LL,DD,DD,RR,UU,RR,DD,RR,UU,UU,UU",
-            "PP,RR,PP,RR,R1,MH,PP,DD,R1,MH,PP,LL,R2,PP,LL,R2,PP,DD,R1,MH,PP,DD,PP,RR,PP,UU,R1,MV,PP,RR,R1,MH,PP,DD,PP,RR,PP,UU,R1,MV,PP,UU,R1,MV,PP,UU,R1,MV,PP",
-        )
-    return Fractal(
-        "RR,DD,LL,DD,RR,RR,UU,UU",
-        "PP,RR,R1,MH,PP,DD,R1,MH,PP,LL,R2,PP,DD,PP,RR,PP,RR,PP,UU,R1,MV,PP,UU,R1,MV,PP",
-    )
+        return hilbert_self_replicator("RR,RR,DD,LL,LL,DD,DD,RR,UU,RR,DD,RR,UU,UU,UU")
+    if variation == 2:
+        return hilbert_self_replicator("DD,DD,DD,RR,UU,UU,UU,RR,DD,DD,DD,RR,UU,UU,UU")
+    if variation == 3:
+        return hilbert_self_replicator("DD,RR,UU,RR,DD,DD,LL,LL,DD,RR,RR,RR,UU,UU,UU")
+    if variation == 4:
+        return hilbert_self_replicator("RR,RR,DD,DD,LL,UU,LL,DD,DD,RR,RR,RR,UU,UU,UU")
+    return hilbert_self_replicator("RR,DD,LL,DD,RR,RR,UU,UU") 
